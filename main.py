@@ -12,6 +12,9 @@ def read_data(file_name):
   # Read CSV file
   df = pd.read_csv(f'{file_name}.csv')
   
+  # Update adverse_event to True where trial_outcome is Worsened
+  df.loc[df['trial_outcome'] == 'Worsened', 'adverse_event'] = True
+  
   # Create patients table and insert data
   df.to_sql('patients', conn, if_exists='replace', index=False)
   
