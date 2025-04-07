@@ -10,10 +10,12 @@ def read_data(file_name):
     
     # Generate unique random patient IDs between 1 and 1000
     available_ids = list(range(1, 1001))
-    df['patient_id'] = [available_ids.pop(randint(0, len(available_ids)-1)) for _ in range(len(df))]
+    unique_patient_ids = df['patient_id'].unique()
+    id_mapping = {old_id: available_ids.pop(randint(0, len(available_ids)-1)) 
+                 for old_id in unique_patient_ids}
     
-    # # Update all adverse_event rows to True where trial_outcome is Worsened
-    # df.loc[df['trial_outcome'] == 'Worsened', 'adverse_event'] = True
+    # Map old IDs to new random IDs while preserving relationships
+    df['patient_id'] = df['patient_id'].map(id_mapping)
     
     # Save back to CSV
     df.to_csv(f'{file_name}.csv', index=False)
