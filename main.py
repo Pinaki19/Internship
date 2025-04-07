@@ -12,8 +12,8 @@ def read_data(file_name):
     available_ids = list(range(1, 1001))
     df['patient_id'] = [available_ids.pop(randint(0, len(available_ids)-1)) for _ in range(len(df))]
     
-    # Update all adverse_event rows to True where trial_outcome is Worsened
-    df.loc[df['trial_outcome'] == 'Worsened', 'adverse_event'] = True
+    # # Update all adverse_event rows to True where trial_outcome is Worsened
+    # df.loc[df['trial_outcome'] == 'Worsened', 'adverse_event'] = True
     
     # Save back to CSV
     df.to_csv(f'{file_name}.csv', index=False)
