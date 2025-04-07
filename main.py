@@ -11,7 +11,8 @@ def read_data(file_name):
   
   # Read CSV file
   df = pd.read_csv(f'{file_name}.csv')
-  
+
+  df['patient_id'] = [randint(1,1000) for _ in range(len(df))]
   # Update adverse_event to True where trial_outcome is Worsened
   df.loc[df['trial_outcome'] == 'Worsened', 'adverse_event'] = True
   
