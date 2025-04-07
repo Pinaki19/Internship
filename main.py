@@ -2,24 +2,15 @@
 import pandas as pd
 import sqlite3
 from datetime import datetime
-
-# Read CSV file
-df = pd.read_csv('MOCK_DATA_PR6.csv')
-
-# Convert enrollment_date to datetime
-df['enrollment_date'] = pd.to_datetime(df['enrollment_date'], format='%d-%m-%Y')
-
+from random import randint, random,choice
 # Create SQLite connection
 conn = sqlite3.connect('patients.db')
+df_from_db = pd.read_sql_query("SELECT * FROM patients", conn)
+df_from_db['patient_id'] = range(1, len(df_from_db) + 1)
 
-# Write to SQLite
-df.to_sql('patients', conn, if_exists='replace', index=False)
+# Save to CSV
+df_from_db.to_csv('MOCK_DATA_PR6_new.csv', index=False)
 
-# Verify the data
-cursor = conn.cursor()
-result = cursor.execute("SELECT * FROM patients LIMIT 5").fetchall()
-print("First 5 records:")
-for row in result:
-    print(row)
-
+print("Data has been saved back to MOCK_DATA_PR6.csv")
 conn.close()
+
