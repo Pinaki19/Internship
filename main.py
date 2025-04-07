@@ -5,23 +5,21 @@ from datetime import datetime
 from random import randint, random, choice
 
 def process_regions_data():
-  # Read regions data
-  df = pd.read_csv('regions_data.csv')
-  all='ABCDEFGHIJKLMNOPQRSTUVWXYZ'
-  alpha=[char for char in all]
-  codes=[choice(alpha)+choice(alpha) for i in range(len(df))]
-  seen=set()
-  for row in df:
-    # print(df[row])
-   
-    new_code=choice(codes)
-    while new_code in seen:
-        new_code=choice(codes)
-    df['region_code']=new_code
-    seen.add(new_code)
-  # Save processed data back to CSV
-  df.to_csv('regions_data.csv', index=False)
-  return df
+    # Read regions data
+    df = pd.read_csv('regions_data.csv')
+    
+    # Drop duplicates keeping first occurrence of region_id
+    df = df.drop_duplicates(subset=['region_id'], keep='first')
+    
+    # Drop duplicates keeping first occurrence of region_name
+    df = df.drop_duplicates(subset=['region_name'], keep='first')
+    
+    # Sort by region_id for consistency
+    df = df.sort_values('region_id')
+    
+    # Save processed data back to CSV
+    df.to_csv('regions_data.csv', index=False)
+    return df
 
 def read_data(file_name):
     # Read CSV file
