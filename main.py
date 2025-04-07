@@ -8,11 +8,33 @@ def process_regions_data():
     # Read regions data
     df = pd.read_csv('regions_data.csv')
     
-    # Drop duplicates keeping first occurrence of region_id
-    df = df.drop_duplicates(subset=['region_id'], keep='first')
+    # Create sets to track used IDs and names
+    used_ids = set()
+    used_names = set()
+    max_id = df['region_id'].max()
     
-    # Drop duplicates keeping first occurrence of region_name
-    df = df.drop_duplicates(subset=['region_name'], keep='first')
+    # Process each row
+    for index, row in df.iterrows():
+        region_id = row['region_id']
+        region_name = row['region_name']
+        
+        # If ID already used, generate new unique ID
+        if region_id in used_ids:
+            max_id += 1
+            df.at[index, 'region_id'] = max_id
+            region_id = max_id
+            
+        # If name already used, generate new unique name
+        if region_name in used_names:
+            new_name = f'REG_{max_id}'
+            while new_name in used_names:
+                max_id += 1
+                new_name = f'REG_{max_id}'
+            df.at[index, 'region_name'] = new_name
+            region_name = new_name
+            
+        used_ids.add(region_id)
+        used_names.add(region_name)
     
     # Sort by region_id for consistency
     df = df.sort_values('region_id')
