@@ -69,3 +69,12 @@ mode = "sequential"
 [[workflows.workflow.tasks]]
 task = "shell.exec"
 args = "python3 analyze_adverse_events.py"
+
+[[workflows.workflow]]
+name = "Count Notes"
+author = 41243465
+mode = "sequential"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "python3 count_notes_per_region.py"
