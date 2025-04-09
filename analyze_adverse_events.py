@@ -8,7 +8,7 @@ df = pd.read_csv('notes_with_adverse_events.csv')
 # Define keywords that indicate adverse effects
 adverse_keywords = [
     'adverse', 'worsened', 'deteriorat', 'decline', 'elevated', 'increased pain',
-    'decreased', 'lost.*kg', 'infection', 'erythema', 'purulent', 'dyspnea',
+    'decreased weight', 'lost.*kg', 'infection', 'erythema', 'purulent', 'dyspnea',
     'suicidal', 'exacerbation', 'interfering', 'side effects', 'elevated'
 ]
 
