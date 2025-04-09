@@ -13,3 +13,41 @@ requiredFiles = [".replit", "replit.nix"]
 [deployment]
 run = ["python3", "main.py"]
 deploymentTarget = "cloudrun"
+
+[workflows]
+
+[[workflows.workflow]]
+name = "Python"
+mode = "sequential"
+author = 41243465
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "python3 python.py"
+
+[[workflows.workflow]]
+name = "textblob"
+mode = "sequential"
+author = 41243465
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "python3 textblob_test.py"
+
+[[workflows.workflow]]
+name = "install"
+mode = "sequential"
+author = 41243465
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "pip3 install seaborn"
+
+[[workflows.workflow]]
+name = "nltk"
+mode = "sequential"
+author = 41243465
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "python3 nltk_test.py"
