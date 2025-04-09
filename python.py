@@ -176,8 +176,49 @@ def generate_wordcloud():
     print("Word cloud saved as 'clinical_notes_wordcloud.png'")
     
 
+def analyze_notes_frequency_over_time():
+    # Read the necessary files
+    notes_df = pd.read_csv('clinician_notes.csv')
+    trials_df = pd.read_csv('trial_results.csv')
+    
+    # Convert dates to datetime
+    notes_df['note_date'] = pd.to_datetime(notes_df['note_date'], format='%d-%m-%Y')
+    trials_df['visit_date'] = pd.to_datetime(trials_df['visit_date'], format='%d-%m-%Y')
+    
+    # Get trial duration
+    trial_start = trials_df['visit_date'].min()
+    trial_end = trials_df['visit_date'].max()
+    
+    # Group notes by region and month
+    notes_df['month'] = notes_df['note_date'].dt.to_period('M')
+    frequency = notes_df.groupby(['region_id', 'month']).size().reset_index(name='note_count')
+    
+    # Plot the results
+    plt.figure(figsize=(15, 8))
+    for region in frequency['region_id'].unique():
+        region_data = frequency[frequency['region_id'] == region]
+        plt.plot(region_data['month'].astype(str), region_data['note_count'], 
+                label=f'Region {region}', marker='o')
+    
+    plt.title('Notes Frequency by Region Over Trial Duration')
+    plt.xlabel('Month')
+    plt.ylabel('Number of Notes')
+    plt.xticks(rotation=45)
+    plt.legend(bbox_to_anchor=(1.05, 1), loc='upper left')
+    plt.tight_layout()
+    plt.savefig('notes_frequency_over_time.png')
+    
+    # Print summary statistics
+    print("\nNotes Frequency Analysis:")
+    print(f"Trial Duration: {trial_start.strftime('%d-%m-%Y')} to {trial_end.strftime('%d-%m-%Y')}")
+    
+    monthly_total = frequency.groupby('month')['note_count'].sum()
+    print(f"\nBusiest Month: {monthly_total.idxmax()} with {monthly_total.max()} notes")
+    print(f"Quietest Month: {monthly_total.idxmin()} with {monthly_total.min()} notes")
+
 if __name__ == "__main__":
     count_notes_per_region()
+    analyze_notes_frequency_over_time()
 
 
 
