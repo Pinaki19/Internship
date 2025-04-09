@@ -53,10 +53,10 @@ task = "shell.exec"
 args = "python3 nltk_test.py"
 
 [[workflows.workflow]]
-name = "Merge Data"
+name = "List Visits"
 author = 41243465
 mode = "sequential"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "python3 merge_patient_data.py"
+args = "python3 list_patient_visits.py"
