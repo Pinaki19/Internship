@@ -41,7 +41,7 @@ author = 41243465
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "pip3 install seaborn"
+args = "pip install wordcloud"
 
 [[workflows.workflow]]
 name = "nltk"

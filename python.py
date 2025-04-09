@@ -1,9 +1,11 @@
-from textblob_test import get_polarity
+from textblob import TextBlob
 from collections import Counter
 import re
 from nltk.corpus import stopwords
 import nltk
 import pandas as pd
+import matplotlib.pyplot as plt
+from wordcloud import WordCloud
 # Load the clinical notes
 data = pd.read_csv('clinician_notes.csv')
 
@@ -32,6 +34,10 @@ def report_top_words(n:int):
 
 
 #Question 4
+
+def get_polarity(text):
+    return TextBlob(str(text)).sentiment.polarity
+    
 Neg_cutoff=-0.24444
 Pos_cutoff=0.050
 def get_sentiment(text):
@@ -52,9 +58,6 @@ def analyze_sentiment():
     data.to_csv(output_file, index=False)
     print(f"\nResults saved to {output_file}")
 
-
-if __name__ == "__main__":
-    analyze_sentiment()
 
 
 def extract_numerical_changes(text):
@@ -111,8 +114,40 @@ def analyze_negative_trends():
                 else:
                     print(f"- {note.split('.')[0]}")
 
+
+#Question 5 Wordcloud
+def generate_wordcloud():
+    df = pd.read_csv('clinician_notes.csv')
+    # Combine all notes into one text
+    text = ' '.join(df['note_text'].astype(str))
+    # Get stopwords and add custom medical/common words to filter out
+    stop_words = set(stopwords.words('english'))
+    custom_stops = {'patient', 'reports', 'noted', 'unchanged', 'approximately', 'current', 'showing'}
+    stop_words.update(custom_stops)
+    
+    # Create and generate a word cloud image
+    wordcloud = WordCloud(
+        width=1600, 
+        height=800,
+        background_color='white',
+        stopwords=stop_words,
+        min_font_size=10,
+        max_font_size=150
+    ).generate(text)
+    
+    # Display the word cloud
+    plt.figure(figsize=(20,10))
+    plt.imshow(wordcloud, interpolation='bilinear')
+    plt.axis('off')
+    plt.title('Word Cloud of Clinical Notes')
+    
+    # Save the image
+    plt.savefig('clinical_notes_wordcloud.png', bbox_inches='tight', dpi=300)
+    print("Word cloud saved as 'clinical_notes_wordcloud.png'")
+    
+
 if __name__ == "__main__":
-    analyze_negative_trends()
+    generate_wordcloud()
 
 
 
