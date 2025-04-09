@@ -26,4 +26,4 @@ result.to_csv('notes_per_region.csv', index=False)
 print("\nNotes per Region:")
 print("================")
 for _, row in result.iterrows():
-    print(f"{row['region_name']}: {row['note_count']} notes")
+    print(f"{row['region_name']} (ID: {row['region_id']}): {row['note_count']} notes")
