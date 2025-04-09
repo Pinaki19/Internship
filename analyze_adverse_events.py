@@ -7,9 +7,14 @@ df = pd.read_csv('notes_with_adverse_events.csv')
 
 # Define keywords that indicate adverse effects
 adverse_keywords = [
-    'adverse', 'worsened', 'deteriorat', 'decline', 'elevated', 'increased pain',
-    'decreased weight', 'lost.*kg', 'infection', 'erythema', 'purulent', 'dyspnea',
-    'suicidal', 'exacerbation', 'interfering', 'side effects', 'elevated'
+    'deteriorat(?:ed|ing)', 'significant decline', 'severely elevated',
+    'increased pain.*(?:interfering|limiting)',
+    'lost [0-9]+kg.*unintentional', 'infection.*(?:purulent|erythema)',
+    'acute dyspnea', 'suicidal.*increased', 'severe exacerbation',
+    'side effects.*(?:intensified|severe)',
+    'elevated.*(?:concerning|requiring)',
+    'cognitive.*decline', 'symptoms.*(?:worsened|interfering)',
+    'new onset.*(?:severe|concerning)'
 ]
 
 # Create regex pattern
