@@ -53,37 +53,10 @@ task = "shell.exec"
 args = "python3 nltk_test.py"
 
 [[workflows.workflow]]
-name = "List Visits"
+name = "Merge Adverse Events"
 author = 41243465
 mode = "sequential"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "python3 list_patient_visits.py"
-
-[[workflows.workflow]]
-name = "Merge Outcomes"
-author = 41243465
-mode = "sequential"
-
-[[workflows.workflow.tasks]]
-task = "shell.exec"
-args = "python3 merge_outcomes.py"
-
-[[workflows.workflow]]
-name = "Update Dates"
-author = 41243465
-mode = "sequential"
-
-[[workflows.workflow.tasks]]
-task = "shell.exec"
-args = "python3 update_dates.py"
-
-[[workflows.workflow]]
-name = "Create Notes"
-author = 41243465
-mode = "sequential"
-
-[[workflows.workflow.tasks]]
-task = "shell.exec"
-args = "python3 create_notes.py"
+args = "python3 merge_adverse_events.py"
