@@ -55,3 +55,66 @@ def analyze_sentiment():
 
 if __name__ == "__main__":
     analyze_sentiment()
+
+
+def extract_numerical_changes(text):
+    # Extract numerical changes using regex
+    changes = re.findall(r'(\d+(?:\.\d+)?/\d+|\d+(?:\.\d+)?%|\d+(?:\.\d+)?)\s*(?:to|->)\s*(\d+(?:\.\d+)?/\d+|\d+(?:\.\d+)?%|\d+(?:\.\d+)?)', text)
+    return changes
+
+def analyze_negative_trends():
+    # Read the sentiment analysis results
+    df = pd.read_csv('sentiment_analysis_results.csv')
+
+    # Filter for negative sentiment
+    negative_notes = df[df['sentiment'] == 'Negative']
+
+    # Initialize categories for trends
+    trends = {
+        'Physical Symptoms': [],
+        'Mental Health': [],
+        'Vital Signs': [],
+        'Treatment Response': []
+    }
+
+    # Analyze each negative note
+    for note in negative_notes['note_text']:
+        # Physical Symptoms
+        if any(term in note.lower() for term in ['pain', 'edema', 'tremor', 'dyspnea', 'wound']):
+            trends['Physical Symptoms'].append(note)
+
+        # Mental Health
+        if any(term in note.lower() for term in ['anxiety', 'depression', 'cognitive', 'mood']):
+            trends['Mental Health'].append(note)
+
+        # Vital Signs
+        if any(term in note.lower() for term in ['blood pressure', 'heart rate', 'oxygen', 'temperature']):
+            trends['Vital Signs'].append(note)
+
+        # Treatment Response
+        if any(term in note.lower() for term in ['medication', 'treatment', 'therapy', 'dose']):
+            trends['Treatment Response'].append(note)
+
+    # Print summary
+    print("\nNegative Trends Analysis Summary:")
+    print("=================================")
+
+    for category, instances in trends.items():
+        if instances:
+            print(f"\n{category}:")
+            print("-" * len(category))
+            for note in instances:
+                # Extract and display numerical changes if present
+                changes = extract_numerical_changes(note)
+                if changes:
+                    print(f"- {note.split('.')[0]} (Changes: {', '.join([f'{c[0]} to {c[1]}' for c in changes])})")
+                else:
+                    print(f"- {note.split('.')[0]}")
+
+if __name__ == "__main__":
+    analyze_negative_trends()
+
+
+
+
+    
