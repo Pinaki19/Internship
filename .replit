@@ -60,3 +60,12 @@ mode = "sequential"
 [[workflows.workflow.tasks]]
 task = "shell.exec"
 args = "python3 list_patient_visits.py"
+
+[[workflows.workflow]]
+name = "Merge Outcomes"
+author = 41243465
+mode = "sequential"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "python3 merge_outcomes.py"
