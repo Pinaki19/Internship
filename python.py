@@ -13,6 +13,36 @@ data = pd.read_csv('clinician_notes.csv')
 #nltk.download('vader_lexicon')
 #nltk.download('stopwords')
 
+#Question 2
+def count_notes_per_region():
+
+    # Read the CSV files
+    notes_df = pd.read_csv('clinician_notes.csv')
+    regions_df = pd.read_csv('regions_data.csv')
+
+    # Count notes per region
+    notes_per_region = notes_df.groupby('region_id').size().reset_index(name='note_count')
+
+    # Merge with region names
+    result = pd.merge(
+        notes_per_region,
+        regions_df[['region_id', 'region_name']],
+        on='region_id',
+        how='left'
+    )
+
+    # Sort by region name
+    result = result.sort_values('region_name')
+
+    # Save results
+    result.to_csv('notes_per_region.csv', index=False)
+
+    # Print results
+    print("\nNotes per Region:")
+    print("================")
+    for _, row in result.iterrows():
+        print(f"{row['region_name']} (ID: {row['region_id']}): {row['note_count']} notes")
+
 #Question 3
 def report_top_words(n:int):
     def get_keywords(text):
@@ -147,7 +177,7 @@ def generate_wordcloud():
     
 
 if __name__ == "__main__":
-    generate_wordcloud()
+    count_notes_per_region()
 
 
 
