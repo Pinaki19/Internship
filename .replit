@@ -78,3 +78,12 @@ mode = "sequential"
 [[workflows.workflow.tasks]]
 task = "shell.exec"
 args = "python3 update_dates.py"
+
+[[workflows.workflow]]
+name = "Create Notes"
+author = 41243465
+mode = "sequential"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "python3 create_notes.py"
