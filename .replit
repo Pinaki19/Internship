@@ -51,3 +51,12 @@ author = 41243465
 [[workflows.workflow.tasks]]
 task = "shell.exec"
 args = "python3 nltk_test.py"
+
+[[workflows.workflow]]
+name = "Merge Data"
+author = 41243465
+mode = "sequential"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "python3 merge_patient_data.py"

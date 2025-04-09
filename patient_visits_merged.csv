@@ -1,0 +1,2 @@
+note_id,patient_id,region_id,note_date,note_text,health_metric,adverse_event,trial_outcome
+33,221,16,2024-08-23,New onset of peripheral edema noted bilaterally in lower extremities.Patient reports increased pain intensity from 5/10 to 8/10 since last visit,88.533,False,Stable
