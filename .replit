@@ -69,3 +69,12 @@ mode = "sequential"
 [[workflows.workflow.tasks]]
 task = "shell.exec"
 args = "python3 merge_outcomes.py"
+
+[[workflows.workflow]]
+name = "Update Dates"
+author = 41243465
+mode = "sequential"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "python3 update_dates.py"
