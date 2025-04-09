@@ -47,7 +47,12 @@ print("\nNotes with adverse mentions but not flagged:")
 false_negatives = discrepancies[discrepancies['adverse_event'] == False]
 print(f"Count: {len(false_negatives)}")
 
+# Save discrepancies for review
+discrepancies.to_csv('adverse_event_discrepancies.csv', index=False)
+print("\nDetailed discrepancies saved to 'adverse_event_discrepancies.csv'")
+
 # Save all results for review
 results_df = df[['patient_id', 'note_date', 'note_text', 'adverse_event', 'adverse_mentioned']]
 results_df.to_csv('adverse_event_analysis.csv', index=False)
 print("\nAll results saved to 'adverse_event_analysis.csv'")
+
