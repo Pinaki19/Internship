@@ -96,16 +96,16 @@ results_df.to_csv('textblob_sentiment_results.csv', index=False)
 
 #------------------ Visualize ------------------
 #Pivot to make a heatmap
-pivot = results_df.pivot(index='neg_cutoff', columns='pos_cutoff', values='accuracy')
+# pivot = results_df.pivot(index='neg_cutoff', columns='pos_cutoff', values='accuracy')
 
-plt.figure(figsize=(10, 8))
-sns.heatmap(pivot, annot=True, fmt=".2%", cmap="YlGnBu", cbar_kws={'label': 'Accuracy'})
-plt.title('Grid Search Accuracy for Sentiment Cutoffs')
-plt.xlabel('Positive Cutoff')
-plt.ylabel('Negative Cutoff')
-plt.tight_layout()
-plt.savefig("sentiment_cutoff_grid_heatmap.png")
-plt.show()
+# plt.figure(figsize=(10, 8))
+# sns.heatmap(pivot, annot=True, fmt=".2%", cmap="YlGnBu", cbar_kws={'label': 'Accuracy'})
+# plt.title('Grid Search Accuracy for Sentiment Cutoffs')
+# plt.xlabel('Positive Cutoff')
+# plt.ylabel('Negative Cutoff')
+# plt.tight_layout()
+# plt.savefig("sentiment_cutoff_grid_heatmap.png")
+# plt.show()
 
 # Print best configuration
 best = results_df.loc[results_df['accuracy'].idxmax()]
