@@ -11,7 +11,17 @@ POSITIVE_INDICATORS = {
     'stable': 0.5,
     'normal': 0.5,
     'resolved': 1.0,
-    'healing': 0.8
+    'healing': 0.8,
+    'well-controlled': 0.9,
+    'gained': 0.7,
+    'concentrate': 0.6,
+    'return to normal': 0.9,
+    'reduction': 0.7,
+    'noticeably reduced': 0.8,
+    'significantly reduced': 0.9,
+    'climb stairs': 0.7,
+    'healthy granulation': 0.8,
+    'sleeping through': 0.7
 }
 
 # Medical-specific negative indicators  
@@ -23,7 +33,17 @@ NEGATIVE_INDICATORS = {
     'declined': -0.8,
     'infection': -0.7,
     'exacerbation': -0.8,
-    'adverse': -0.7
+    'adverse': -0.7,
+    'lost': -0.8,
+    'unintentionally': -0.6,
+    'interfering': -0.7,
+    'purulent': -0.9,
+    'erythema': -0.7,
+    'suicidal': -1.0,
+    'anhedonia': -0.8,
+    'dyspnea': -0.8,
+    'nighttime awakening': -0.7,
+    'intensified': -0.8
 }
 
 def preprocess_text(text):
