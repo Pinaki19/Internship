@@ -60,3 +60,12 @@ mode = "sequential"
 [[workflows.workflow.tasks]]
 task = "shell.exec"
 args = "python3 analyze_adverse_events.py"
+
+[[workflows.workflow]]
+name = "test_run"
+mode = "sequential"
+author = 41284814
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "python3 test_file.py"
