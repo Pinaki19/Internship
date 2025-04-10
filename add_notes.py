@@ -5,9 +5,10 @@ import pandas as pd
 trial_df = pd.read_csv('trial_results.csv')
 cleaned_notes_df = pd.read_csv('cleaned_notes.csv')
 clinician_notes_df = pd.read_csv('clinician_notes.csv')
+patients_df = pd.read_csv('patients_data.csv')
 
 # Get some sample patient visits with different outcomes
-sample_visits = trial_df.groupby('trial_outcome').apply(
+sample_visits = trial_df.groupby('trial_outcome', group_keys=False).apply(
     lambda x: x.sample(n=3, random_state=42)
 ).reset_index(drop=True)
 
@@ -21,10 +22,13 @@ for _, row in sample_visits.iterrows():
         cleaned_notes_df['trial_outcome'] == row['trial_outcome']
     ].sample(n=1).iloc[0]
     
+    # Get region_id from patients_data.csv
+    region_id = patients_df[patients_df['patient_id'] == row['patient_id']]['region_id'].iloc[0]
+    
     new_notes.append({
         'note_id': note_id_start + len(new_notes),
         'patient_id': row['patient_id'],
-        'region_id': trial_df[trial_df['patient_id'] == row['patient_id']]['region_id'].iloc[0],
+        'region_id': region_id,
         'note_date': row['visit_date'],
         'note_text': matching_note['note_text']
     })
