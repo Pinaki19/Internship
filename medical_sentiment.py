@@ -67,17 +67,76 @@ def get_medical_sentiment(text):
     # Combine with TextBlob sentiment
     blob_score = TextBlob(text).sentiment.polarity
     
-    # Weight medical terms more heavily
-    final_score = (score * 0.7) + (blob_score * 0.3)
+    return score, blob_score
+
+def get_final_sentiment(medical_score, blob_score, medical_weight, neg_cutoff, pos_cutoff):
+    final_score = (medical_score * medical_weight) + (blob_score * (1 - medical_weight))
     
-    # Classify based on final score
-    if final_score <= -0.3:
+    if final_score <= neg_cutoff:
         return 'Negative'
-    elif final_score >= 0.3:
+    elif final_score >= pos_cutoff:
         return 'Positive'
     return 'Neutral'
 
 if __name__ == "__main__":
+    import numpy as np
+    
+    # Load data
+    df = pd.read_csv('cleaned_notes.csv')
+    
+    # Grid search parameters
+    medical_weights = np.linspace(0.5, 0.9, 5)  # [0.5, 0.6, 0.7, 0.8, 0.9]
+    neg_cutoffs = np.linspace(-0.4, -0.2, 5)    # [-0.4, -0.35, -0.3, -0.25, -0.2]
+    pos_cutoffs = np.linspace(0.2, 0.4, 5)      # [0.2, 0.25, 0.3, 0.35, 0.4]
+    
+    results = []
+    
+    # Get base scores
+    df['medical_score'], df['blob_score'] = zip(*df['note_text'].apply(get_medical_sentiment))
+    
+    # Map trial outcomes to sentiment
+    outcome_map = {
+        'Worsened': 'Negative',
+        'Improved': 'Positive',
+        'Stable': 'Neutral'
+    }
+    df['expected_sentiment'] = df['trial_outcome'].map(outcome_map)
+    
+    # Grid search
+    for weight in medical_weights:
+        for neg in neg_cutoffs:
+            for pos in pos_cutoffs:
+                df['predicted_sentiment'] = df.apply(
+                    lambda x: get_final_sentiment(
+                        x['medical_score'], 
+                        x['blob_score'],
+                        weight,
+                        neg,
+                        pos
+                    ), axis=1
+                )
+                
+                accuracy = (df['predicted_sentiment'] == df['expected_sentiment']).mean()
+                results.append({
+                    'medical_weight': weight,
+                    'neg_cutoff': neg,
+                    'pos_cutoff': pos,
+                    'accuracy': accuracy
+                })
+    
+    # Find best configuration
+    results_df = pd.DataFrame(results)
+    best_result = results_df.loc[results_df['accuracy'].idxmax()]
+    
+    print("\nGrid Search Results:")
+    print("===================")
+    print(f"Best Accuracy: {best_result['accuracy']:.2%}")
+    print(f"Medical Weight: {best_result['medical_weight']:.2f}")
+    print(f"Negative Cutoff: {best_result['neg_cutoff']:.2f}")
+    print(f"Positive Cutoff: {best_result['pos_cutoff']:.2f}")
+    
+    # Save results
+    results_df.to_csv('medical_sentiment_grid_search.csv', index=False)
     import pandas as pd
     
     # Load data
