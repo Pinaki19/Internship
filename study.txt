@@ -5,3 +5,12 @@ https://textblob.readthedocs.io/en/dev/
 https://neptune.ai/blog/sentiment-analysis-python-textblob-vs-vader-vs-flair
 
 https://www.activeloop.ai/resources/glossary/distil-bert/#:~:text=This%20technique%20captures%20both%20semantic,and%20process%20natural%20language%20data.
+
+
+
+Grid Search Results:
+===================
+Best Accuracy: 89.62%
+Medical Weight: 0.39
+Negative Cutoff: -0.14
+Positive Cutoff: 0.44

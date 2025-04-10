@@ -1,4 +1,4 @@
-
+import pandas as pd
 from textblob import TextBlob
 import re
 
@@ -85,9 +85,9 @@ if __name__ == "__main__":
     df = pd.read_csv('cleaned_notes.csv')
     
     # Grid search parameters
-    medical_weights = np.linspace(0.5, 0.9, 5)  # [0.5, 0.6, 0.7, 0.8, 0.9]
-    neg_cutoffs = np.linspace(-0.4, -0.2, 5)    # [-0.4, -0.35, -0.3, -0.25, -0.2]
-    pos_cutoffs = np.linspace(0.2, 0.4, 5)      # [0.2, 0.25, 0.3, 0.35, 0.4]
+    medical_weights = np.linspace(0.1, 0.9, 20)  # [0.5, 0.6, 0.7, 0.8, 0.9]
+    neg_cutoffs = np.linspace(-0.5, -0.1, 20)    # [-0.4, -0.35, -0.3, -0.25, -0.2]
+    pos_cutoffs = np.linspace(0.1, 0.5, 20)      # [0.2, 0.25, 0.3, 0.35, 0.4]
     
     results = []
     
@@ -153,6 +153,3 @@ if __name__ == "__main__":
     }
     df['expected_sentiment'] = df['trial_outcome'].map(outcome_map)
     
-    # Calculate accuracy
-    accuracy = (df['predicted_sentiment'] == df['expected_sentiment']).mean()
-    print(f"Accuracy: {accuracy:.2%}")
