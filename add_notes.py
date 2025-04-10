@@ -7,10 +7,11 @@ cleaned_notes_df = pd.read_csv('cleaned_notes.csv')
 clinician_notes_df = pd.read_csv('clinician_notes.csv')
 patients_df = pd.read_csv('patients_data.csv')
 
-# Get some sample patient visits with different outcomes
-sample_visits = trial_df.groupby('trial_outcome', group_keys=False).apply(
-    lambda x: x.sample(n=3, random_state=42)
-).reset_index(drop=True)
+# Get note samples focused on stable and worsened outcomes
+sample_visits = pd.concat([
+    trial_df[trial_df['trial_outcome'] == 'Stable'].sample(n=6, random_state=42),
+    trial_df[trial_df['trial_outcome'] == 'Worsened'].sample(n=6, random_state=42)
+])
 
 # Create new notes
 new_notes = []
@@ -41,4 +42,4 @@ updated_notes_df = pd.concat([clinician_notes_df, new_notes_df], ignore_index=Tr
 
 # Save updated dataset
 updated_notes_df.to_csv('clinician_notes.csv', index=False)
-print(f"Added {len(new_notes)} new diverse notes to clinician_notes.csv")
+print(f"Added {len(new_notes)} new notes (focused on stable and worsened outcomes) to clinician_notes.csv")
