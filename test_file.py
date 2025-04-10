@@ -2,7 +2,7 @@ import pandas as pd
 
 def count_trial_outcomes():
     df = pd.read_csv('clinician_notes.csv')
-    df_cleaned = pd.read_csv('cleaned_notes.csv', quoting=1)  # Handle quoted fields
+    df_cleaned = pd.read_csv('cleaned_notes.csv')  # Handle quoted fields
 
     # Get unique note text and outcomes mapping
     outcome_map = df_cleaned[['note_text', 'trial_outcome']].drop_duplicates()
