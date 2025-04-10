@@ -106,3 +106,12 @@ mode = "sequential"
 [[workflows.workflow.tasks]]
 task = "shell.exec"
 args = "python3 label_notes.py"
+
+[[workflows.workflow]]
+name = "MergeLabels"
+author = 41284814
+mode = "sequential"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "python3 merge_labels.py"
