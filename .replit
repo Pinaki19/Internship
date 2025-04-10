@@ -79,3 +79,12 @@ author = 41284814
 [[workflows.workflow.tasks]]
 task = "shell.exec"
 args = "python3 add_notes.py"
+
+[[workflows.workflow]]
+name = "MedicalSentiment"
+author = 41284814
+mode = "sequential"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "python3 medical_sentiment.py"
