@@ -97,3 +97,12 @@ mode = "sequential"
 [[workflows.workflow.tasks]]
 task = "shell.exec"
 args = "python3 label_notes.py"
+
+[[workflows.workflow]]
+name = "VaderLabel"
+author = 41284814
+mode = "sequential"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "python3 label_notes.py"

@@ -1,7 +1,12 @@
 
 import pandas as pd
-from textblob import TextBlob
+from nltk.sentiment.vader import SentimentIntensityAnalyzer
 import re
+import nltk
+
+# Download VADER lexicon
+nltk.download('vader_lexicon')
+sid = SentimentIntensityAnalyzer()
 
 def preprocess_text(text):
     # Remove punctuation and convert to lowercase
@@ -41,11 +46,11 @@ def get_medical_sentiment(text):
         if term in text:
             score += value
     
-    # Get TextBlob sentiment
-    blob_score = TextBlob(text).sentiment.polarity
+    # Get VADER sentiment
+    vader_score = sid.polarity_scores(text)['compound']
     
     # Use optimal weights found from grid search
-    final_score = (score * 0.39) + (blob_score * 0.61)
+    final_score = (score * 0.39) + (vader_score * 0.61)
     
     # Use optimal cutoffs found from grid search
     if final_score <= -0.14:
@@ -61,6 +66,6 @@ df = pd.read_csv('cleaned_notes.csv')
 df['predicted_sentiment'] = df['note_text'].apply(get_medical_sentiment)
 
 # Save to new CSV
-df.to_csv('labeled_notes.csv', index=False)
+df.to_csv('vader_labeled_notes.csv', index=False)
 
-print("Notes have been labeled and saved to labeled_notes.csv")
+print("Notes have been labeled using VADER and saved to vader_labeled_notes.csv")
