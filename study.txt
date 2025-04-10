@@ -16,9 +16,32 @@ Negative Cutoff: -0.14
 Positive Cutoff: 0.44
 
 
+
+
 Grid Search Results: Vader
 ===================
-Best Accuracy: 89.62%
-Medical Weight: 0.39
-Negative Cutoff: -0.14
-Positive Cutoff: 0.44
+Best Accuracy: 87.60%
+Medical Weight: 0.61
+Negative Cutoff: -0.35
+Positive Cutoff: 0.50
+
+Let me explain the medical sentiment keywords and their weightages:
+
+These keywords are specifically chosen for medical context sentiment analysis because:
+
+Clinical Relevance:
+Positive indicators like 'improved', 'resolved', 'well-controlled' represent positive clinical outcomes
+Negative indicators like 'worsened', 'deteriorating', 'infection' represent adverse clinical outcomes
+Weightage Scale:
+Positive weightages range from 0.5 to 1.0
+Negative weightages range from -0.6 to -1.0
+The weightages are calculated based on:
+
+Clinical Severity:
+Maximum weights (±1.0) for definitive terms like 'improved'(1.0), 'worsened'(-1.0), 'resolved'(1.0), 'suicidal'(-1.0)
+Medium weights (±0.8) for significant changes like 'decreased'(0.8), 'increased pain'(-0.8)
+Lower weights (±0.5-0.7) for mild/stable conditions like 'stable'(0.5), 'normal'(0.5)
+Temporal Context:
+Terms indicating sustained change get higher weights (e.g., 'well-controlled': 0.9)
+Terms indicating temporary states get lower weights (e.g., 'interfering': -0.7)
+These weightages are then combined with either VADER or TextBlob scores using the optimal weights found through grid search (medical_weight: 0.39 for TextBlob, 0.61 for VADER) to produce the final sentiment score.

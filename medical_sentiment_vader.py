@@ -4,13 +4,8 @@ import numpy as np
 from nltk.sentiment.vader import SentimentIntensityAnalyzer
 import re
 
-def preprocess_text(text):
-    # Remove punctuation and convert to lowercase
-    text = re.sub(r'[^\w\s]', ' ', text.lower())
-    return text
 
 def get_medical_sentiment(text):
-    text = preprocess_text(text)
     score = 0
     
     # Medical-specific positive indicators
