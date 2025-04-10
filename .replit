@@ -115,3 +115,12 @@ mode = "sequential"
 [[workflows.workflow.tasks]]
 task = "shell.exec"
 args = "python3 merge_labels.py"
+
+[[workflows.workflow]]
+name = "FindDiscrepancies"
+author = 41284814
+mode = "sequential"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "python3 find_discrepancies.py"
