@@ -3,6 +3,34 @@ import numpy as np
 from textblob import TextBlob
 import seaborn as sns
 import matplotlib.pyplot as plt
+import nltk
+import re
+import string
+from nltk.stem import WordNetLemmatizer
+from nltk import word_tokenize
+
+# Ensure NLTK resources are downloaded
+#nltk.download("all")
+nltk.download('punkt_tab')
+# nltk.download('punkt', raise_on_error=True)
+nltk.download('wordnet', raise_on_error=True)
+# nltk.download('omw-1.4', raise_on_error=True)
+
+lemmatizer = WordNetLemmatizer()
+
+def preprocess_text(text):
+    # Lowercase
+    text = text.lower()
+
+    # Remove punctuation
+    text = re.sub(f"[{re.escape(string.punctuation)}]", "", text)
+
+    # Tokenize and lemmatize
+    tokens = word_tokenize(text)
+    lemmatized_tokens = [lemmatizer.lemmatize(token) for token in tokens]
+
+    # Join back to string
+    return " ".join(lemmatized_tokens)
 
 # ------------------ Load & Clean ------------------
 df = pd.read_csv('cleaned_notes.csv')
@@ -12,21 +40,25 @@ df = df[['note_text', 'trial_outcome']].drop_duplicates()
 
 # Compute polarity using TextBlob
 def get_polarity(text):
-    return TextBlob(str(text)).sentiment.polarity
+    normalized_text=preprocess_text(text)
+    return TextBlob(str(normalized_text)).sentiment.polarity
 
 
 df['polarity'] = df['note_text'].apply(get_polarity)
 
 # Map expected sentiment from trial outcome
 def expected_label(outcome):
-    if outcome.lower() == 'worsened':
+    outcome=outcome.lower()
+    if outcome== 'worsened':
         return 'Negative'
+    elif outcome== "improved":
+        return "Positive"
     else:
-        return 'Non-Negative'
+        return 'Neutral'
 
 df['expected_sentiment'] = df['trial_outcome'].apply(expected_label)
 
------------------- Grid Search ------------------
+#------------------ Grid Search ------------------
 neg_cutoffs = np.linspace(-0.4, -0.05, 10)  # More negative = more strict
 pos_cutoffs = np.linspace(0.05, 0.4, 10)    # More positive = more strict
 
@@ -36,9 +68,9 @@ for neg in neg_cutoffs:
     for pos in pos_cutoffs:
         # Classify based on current cutoffs
         def label_from_polarity(p):
-            if p > pos:
+            if p >= pos:
                 return 'Positive'
-            elif p < neg:
+            elif p <= neg:
                 return 'Negative'
             else:
                 return 'Neutral'
@@ -47,10 +79,9 @@ for neg in neg_cutoffs:
 
         # Evaluate match with expected sentiment
         def is_correct(pred, expected):
-            if expected == 'Negative':
-                return pred == 'Negative'
-            else:
+            if expected == 'Neutral':  # meaning 'Stable'
                 return pred in ['Neutral', 'Positive']
+            return pred == expected
 
         df['is_correct'] = df.apply(lambda row: is_correct(row['predicted_sentiment'], row['expected_sentiment']), axis=1)
         acc = df['is_correct'].mean()
@@ -63,8 +94,8 @@ results_df = pd.DataFrame(results)
 # Save to CSV
 results_df.to_csv('textblob_sentiment_results.csv', index=False)
 
------------------- Visualize ------------------
-Pivot to make a heatmap
+#------------------ Visualize ------------------
+#Pivot to make a heatmap
 pivot = results_df.pivot(index='neg_cutoff', columns='pos_cutoff', values='accuracy')
 
 plt.figure(figsize=(10, 8))

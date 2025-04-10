@@ -20,10 +20,13 @@ df['polarity'] = df['note_text'].apply(lambda text: sid.polarity_scores(str(text
 
 # Map expected sentiment
 def expected_label(outcome):
-    if outcome.lower() == 'worsened':
-        return 'Negative'
+    outcome = outcome.lower()
+    if outcome == "worsened":
+        return "Negative"
+    elif outcome== "improved":
+        return "Positive"
     else:
-        return 'Non-Negative'
+        return "Neutral"
 
 df['expected_sentiment'] = df['trial_outcome'].apply(expected_label)
 
@@ -48,10 +51,9 @@ for neg in neg_cutoffs:
 
         # Accuracy check
         def is_correct(pred, expected):
-            if expected == 'Negative':
-                return pred == 'Negative'
-            else:
+            if expected == 'Neutral':  # meaning 'Stable'
                 return pred in ['Neutral', 'Positive']
+            return pred == expected
 
         df['is_correct'] = df.apply(lambda row: is_correct(row['predicted_sentiment'], row['expected_sentiment']), axis=1)
         acc = df['is_correct'].mean()

@@ -1,0 +1,7 @@
+https://medium.com/@mystery0116/nlp-how-does-nltk-vader-calculate-sentiment-6c32d0f5046b#:~:text=Vader%20is%20an%20open%2Dsourced,interested%20to%20check%20them%20out.
+
+https://textblob.readthedocs.io/en/dev/
+
+https://neptune.ai/blog/sentiment-analysis-python-textblob-vs-vader-vs-flair
+
+https://www.activeloop.ai/resources/glossary/distil-bert/#:~:text=This%20technique%20captures%20both%20semantic,and%20process%20natural%20language%20data.

@@ -53,15 +53,6 @@ task = "shell.exec"
 args = "python3 nltk_test.py"
 
 [[workflows.workflow]]
-name = "Merge Adverse Events"
-author = 41243465
-mode = "sequential"
-
-[[workflows.workflow.tasks]]
-task = "shell.exec"
-args = "python3 merge_adverse_events.py"
-
-[[workflows.workflow]]
 name = "Analyze Adverse Events"
 author = 41243465
 mode = "sequential"

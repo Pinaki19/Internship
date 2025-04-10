@@ -2,21 +2,10 @@ import sqlite3
 import pandas as pd
 
 
-# # Read the CSV file
-# df = pd.read_csv('trial_results.csv')
-
-# # Sort by patient_id
-# df_sorted = df.sort_values('patient_id')
-
-# # Save back to the same file
-# df_sorted.to_csv('trial_results.csv', index=False)
-# print("Trial results sorted by patient_id")
-
 # Query No : 1
 # Total number of patients enrolled in each region
 
-
-def load_csv_to_db():
+def load_csv_to_db1():
     df_patients = pd.read_csv('patients_data.csv')
     df_regions = pd.read_csv('regions_data.csv')
     conn = sqlite3.connect('patients.db')
@@ -30,10 +19,10 @@ def query_1():
     conn = sqlite3.connect('patients.db')
     cursor = conn.cursor()
     cursor.execute("""
-        select region_name, count(*) as total_patients
+        select region_name,rd.region_id,total_patients
         from patients_data 
-        join regions_data on 
-        patients_data.region_id = regions_data.region_id 
+        join regions_data rd on 
+        patients_data.region_id = rd.region_id 
         group by region_name
         order by region_name""")
     col = [des[0] for des in cursor.description]
@@ -46,7 +35,6 @@ def query_1():
 
 # Query No : 2 
 # Identify the region with fastest enrollment rate by comparing total patient enrolled with the trial duartion 
-
 
 
 def load_csv_to_db2():
@@ -65,7 +53,6 @@ def query_2():
     cursor.execute("""
         SELECT 
             rd.region_name,
-            rd.total_patients,
             COUNT(DISTINCT pd.patient_id) as enrolled_patients,
             ROUND(CAST(rd.total_patients AS FLOAT) / 
                   CAST(JULIANDAY(MAX(pd.enrollment_date)) - JULIANDAY(MIN(pd.enrollment_date)) AS FLOAT), 2) as enrollment_rate
@@ -73,7 +60,8 @@ def query_2():
         JOIN patients_data pd ON rd.region_id = pd.region_id
         GROUP BY rd.region_name, rd.total_patients
         ORDER BY enrollment_rate DESC
-        limit 1 ;
+        LIMIT 1
+         ;
         """)
     cols = [desc[0] for desc in cursor.description]
     print(cols)
@@ -182,7 +170,7 @@ def query_5():
         WHERE trial_results.adverse_event = True
         GROUP BY patients_data.age, patients_data.gender
         ORDER BY total_adverse_events DESC
-        limit 1 ;
+        ;
     """)
     col = [desc[0] for desc in cursor.description]
     print(col)
@@ -194,13 +182,13 @@ def query_5():
 
 
 if __name__=="__main__":
-    load_csv_to_db()
+    load_csv_to_db1()
     query_1()
-    load_csv_to_db2()
-    query_2()
-    load_csv_to_db3()
-    query_3()
-    load_csv_to_db4()
-    query_4()
-    load_csv_to_db5()
-    query_5()
+    # load_csv_to_db2()
+    # query_2()
+    # load_csv_to_db3()
+    # query_3()
+    # load_csv_to_db4()
+    # query_4()
+    # load_csv_to_db5()
+    # query_5()
