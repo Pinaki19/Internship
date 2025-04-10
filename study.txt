@@ -8,7 +8,15 @@ https://www.activeloop.ai/resources/glossary/distil-bert/#:~:text=This%20techniq
 
 
 
-Grid Search Results:
+Grid Search Results: TextBlob
+===================
+Best Accuracy: 89.62%
+Medical Weight: 0.39
+Negative Cutoff: -0.14
+Positive Cutoff: 0.44
+
+
+Grid Search Results: Vader
 ===================
 Best Accuracy: 89.62%
 Medical Weight: 0.39

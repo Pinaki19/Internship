@@ -87,7 +87,7 @@ mode = "sequential"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "python3 medical_sentiment.py"
+args = "python3 medical_sentiment_vader.py"
 
 [[workflows.workflow]]
 name = "LabelNotes"
