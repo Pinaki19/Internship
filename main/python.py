@@ -1,4 +1,3 @@
-from label_notes import get_sentiment
 from collections import Counter
 import re
 from nltk.corpus import stopwords
@@ -12,16 +11,20 @@ from sklearn.cluster import KMeans
 import numpy as np
 from sklearn.feature_extraction.text import TfidfVectorizer, ENGLISH_STOP_WORDS,CountVectorizer
 import seaborn as sns
+import os
+
+cur_dir=os.path.dirname(__file__)
+os.chdir(cur_dir)
 
 # Load the clinical notes ( Q 1)
-data = pd.read_csv('clinician_notes.csv')
+data = pd.read_csv(r'.\CSV\clinician_notes.csv')
 
 
 #Question 2
 def count_notes_per_region():
     # Read the CSV files
-    notes_df = pd.read_csv('clinician_notes.csv')
-    regions_df = pd.read_csv('regions_data.csv')
+    notes_df = pd.read_csv(r'.\CSV\clinician_notes.csv')
+    regions_df = pd.read_csv(r'.\CSV\regions_data.csv')
 
     # Count notes per region
     notes_per_region = notes_df.groupby('region_id').size().reset_index(name='note_count')
@@ -38,7 +41,7 @@ def count_notes_per_region():
     result = result.sort_values('region_name')
 
     # Save results
-    result.to_csv('notes_per_region.csv', index=False)
+    result.to_csv(r'.\results\notes_per_region.csv', index=False)
 
     # Print results
     print("\nNotes per Region:")
@@ -46,11 +49,11 @@ def count_notes_per_region():
     for _, row in result.iterrows():
         print(f"{row['region_name']} (ID: {row['region_id']}): {row['note_count']} notes")
 
-
+#Part of Q2
 def analyze_notes_frequency_over_time():
     # Read the necessary files
-    notes_df = pd.read_csv('clinician_notes.csv')
-    trials_df = pd.read_csv('trial_results.csv')
+    notes_df = pd.read_csv(r'.\CSV\clinician_notes.csv')
+    trials_df = pd.read_csv(r'.\CSV\trial_results.csv')
 
     # Convert dates to datetime
     notes_df['note_date'] = pd.to_datetime(notes_df['note_date'], format='%d-%m-%Y')
@@ -85,7 +88,7 @@ def analyze_notes_frequency_over_time():
     plt.xticks(rotation=45)
     plt.legend(bbox_to_anchor=(1.05, 1), loc='upper left')
     plt.tight_layout()
-    plt.savefig('notes_frequency_top_regions.png')
+    plt.savefig(r'.\results\notes_frequency_top_regions.png')
 
     # Heatmap for large number of regions
     pivot_df = frequency.pivot(index='region_id', columns='month', values='note_count').fillna(0)
@@ -96,7 +99,7 @@ def analyze_notes_frequency_over_time():
     plt.xlabel('Month')
     plt.ylabel('Region ID')
     plt.tight_layout()
-    plt.savefig('notes_frequency_heatmap.png')
+    plt.savefig(r'.\results\notes_frequency_heatmap.png')
 
     # Summary statistics
     print("\nNotes Frequency Analysis:")
@@ -109,7 +112,7 @@ def analyze_notes_frequency_over_time():
 
 
 #Question 3
-def report_top_words(n:int):
+def report_top_words(n:int=3):
     def get_keywords(text):
         text = re.sub(r'[^\w\s]', '', text.lower())
         words = text.split()
@@ -129,12 +132,11 @@ def report_top_words(n:int):
 
 
 #Question 4
-
 def analyze_sentiment():
     #Perform sentiment analysis
     data['sentiment'] = data['note_text'].apply(predict_label)
     # Save results to CSV
-    output_file = 'sentiment_analysis_results.csv'
+    output_file = r'.\results\sentiment_analysis_results.csv'
     data.to_csv(output_file, index=False)
     print(f"\nResults saved to {output_file}")
 
@@ -147,7 +149,7 @@ def extract_numerical_changes(text):
 
 def analyze_negative_trends():
     # Read and drop duplicate rows
-    df = pd.read_csv('sentiment_analysis_results.csv').drop_duplicates()
+    df = pd.read_csv( r'.\results\sentiment_analysis_results.csv').drop_duplicates()
 
     # Filter for negative sentiment
     negative_notes = df[df['sentiment'] == 'Negative'].dropna(subset=['note_text'])
@@ -216,7 +218,7 @@ def analyze_negative_trends():
 
 #Question 5 Wordcloud
 def generate_wordcloud():
-    df = pd.read_csv('clinician_notes.csv')
+    df = pd.read_csv(r'.\CSV\clinician_notes.csv')
     # Combine all notes into one text
     text = ' '.join(df['note_text'].astype(str))
 
@@ -251,8 +253,24 @@ def generate_wordcloud():
     plt.title('Word Cloud of Clinical Notes')
 
     # Save the image
-    plt.savefig('clinical_notes_wordcloud.png', bbox_inches='tight', dpi=300)
+    plt.savefig(r'.\results\clinical_notes_wordcloud.png', bbox_inches='tight', dpi=300)
     print("Word cloud saved as 'clinical_notes_wordcloud.png'")
 
-if __name__ == "__main__":
+
+def Q2():
+    count_notes_per_region()
     analyze_notes_frequency_over_time()
+    
+def Q3():
+    report_top_words(3)
+
+def Q4():
+    analyze_sentiment()
+    analyze_negative_trends()
+
+def Q5():
+    #TODO adverse_event vs Adverse effect from note_text
+    generate_wordcloud()
+
+if __name__ == "__main__":
+    Q5()

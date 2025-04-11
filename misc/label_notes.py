@@ -4,7 +4,7 @@ from nltk.sentiment.vader import SentimentIntensityAnalyzer
 import nltk
 from textblob_test import get_polarity
 from textblob import TextBlob
-from predict import predict_label
+from main.predict import predict_label
 
 def get_sentiment(text):
     return predict_label(text)
