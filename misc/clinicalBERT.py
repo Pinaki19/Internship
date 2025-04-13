@@ -51,7 +51,7 @@ def get_embedding(text):
 
 print("Generating embeddings...")
 embeddings = np.array([get_embedding(text) for text in tqdm(df['note_text'].tolist())])
-
+dump(embeddings, r'models/clinical_bert_embeddings.joblib')
 # Find optimal PCA components
 print("\nFinding optimal PCA components...")
 explained = PCA().fit(embeddings).explained_variance_ratio_
