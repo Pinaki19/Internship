@@ -34,7 +34,7 @@ def preprocess_text(text):
     return " ".join(lemmatized_tokens)
 
 # ------------------ Load & Clean ------------------
-df = pd.read_csv('notes_with_outcomes.csv')
+df = pd.read_csv(r'C:\Users\pinak\Downloads\Internship\main\results\notes_with_outcomes.csv')
 
 # Keep only necessary columns, drop duplicates
 df = df[['note_text', 'trial_outcome']].drop_duplicates()
@@ -45,17 +45,17 @@ def get_polarity(text):
     return TextBlob(str(normalized_text)).sentiment.polarity
 
 
-# df['polarity'] = df['note_text'].apply(get_polarity)
+df['polarity'] = df['note_text'].apply(get_polarity)
 
-# # Map expected sentiment from trial outcome
-# def expected_label(outcome):
-#     outcome=outcome.lower()
-#     if outcome== 'worsened':
-#         return 'Negative'
-#     elif outcome== "improved":
-#         return "Positive"
-#     else:
-#         return 'Neutral'
+# Map expected sentiment from trial outcome
+def expected_label(outcome):
+    outcome=outcome.lower()
+    if outcome== 'worsened':
+        return 'Negative'
+    elif outcome== "improved":
+        return "Positive"
+    else:
+        return 'Neutral'
 
 # df['expected_sentiment'] = df['trial_outcome'].apply(expected_label)
 
@@ -98,19 +98,19 @@ def get_polarity(text):
 
 # #------------------ Visualize ------------------
 # results_df = pd.DataFrame(results)
-#Pivot to make a heatmap
-# pivot = results_df.pivot(index='neg_cutoff', columns='pos_cutoff', values='accuracy')
+# # Pivot to make a heatmap
+# # pivot = results_df.pivot(index='neg_cutoff', columns='pos_cutoff', values='accuracy')
 
-# plt.figure(figsize=(10, 8))
-# sns.heatmap(pivot, annot=True, fmt=".2%", cmap="YlGnBu", cbar_kws={'label': 'Accuracy'})
-# plt.title('Grid Search Accuracy for Sentiment Cutoffs')
-# plt.xlabel('Positive Cutoff')
-# plt.ylabel('Negative Cutoff')
-# plt.tight_layout()
-# plt.savefig("sentiment_cutoff_grid_heatmap.png")
-# plt.show()
+# # plt.figure(figsize=(10, 8))
+# # sns.heatmap(pivot, annot=True, fmt=".2%", cmap="YlGnBu", cbar_kws={'label': 'Accuracy'})
+# # plt.title('Grid Search Accuracy for Sentiment Cutoffs')
+# # plt.xlabel('Positive Cutoff')
+# # plt.ylabel('Negative Cutoff')
+# # plt.tight_layout()
+# # plt.savefig("sentiment_cutoff_grid_heatmap.png")
+# # plt.show()
 
 # # Print best configuration
 # best = results_df.loc[results_df['true_accuracy'].idxmax()]
-# print("\nBest Configuration:")
+# print("\nBest Configuration: TextBlob")
 # print(best)

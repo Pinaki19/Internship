@@ -10,7 +10,7 @@ nltk.download('vader_lexicon')
 sid = SentimentIntensityAnalyzer()
 
 # ------------------ Load & Clean ------------------
-df = pd.read_csv('notes_with_outcomes.csv')
+df = pd.read_csv(r'C:\Users\pinak\Downloads\Internship\main\results\notes_with_outcomes.csv')
 
 # Remove duplicates and keep only needed fields
 df = df[['note_text', 'trial_outcome']].drop_duplicates()

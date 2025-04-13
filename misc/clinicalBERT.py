@@ -16,9 +16,8 @@ from tqdm import tqdm
 from joblib import dump
 
 # Load and preprocess data
-df = pd.read_csv('notes_with_outcomes.csv')
+df = pd.read_csv(r'C:\Users\pinak\Downloads\Internship\main\results\notes_with_outcomes.csv')
 df = df[['note_text', 'trial_outcome']].drop_duplicates().dropna()
-
 
 
 def map_outcome(outcome):
@@ -151,7 +150,7 @@ def evaluate_model(model, name):
 
 # Unified evaluation
 evaluate_model(LogisticRegression(max_iter=100, C=0.5), "Logistic Regression")
-evaluate_model(SVC(kernel='linear', C=1.0), "SVM (Linear Kernel)")
+evaluate_model(SVC(kernel='linear', C=1.0), "SVM (Linear Kernel)")      # Smaller C better generalization
 evaluate_model(RandomForestClassifier(n_estimators=80, max_depth=10, random_state=42), "Random Forest")
 
 # Placeholder for accuracy results
@@ -307,9 +306,9 @@ plt.show()
 final_rf = RandomForestClassifier(n_estimators=80, max_depth=10, random_state=42)
 final_rf.fit(X_pca, y)
 
-# Save the model
-dump(final_rf, r'.\models\best_random_forest_model.joblib')
-print("✅ Random Forest model saved as 'best_random_forest_model.joblib'")
-dump(pca, r'.\models\pca_transformer.joblib')
-dump(le, r'.\models\label_encoder.joblib')
+# # Save the model
+# dump(final_rf, r'.\models\best_random_forest_model.joblib')
+# print("✅ Random Forest model saved as 'best_random_forest_model.joblib'")
+# dump(pca, r'.\models\pca_transformer.joblib')
+# dump(le, r'.\models\label_encoder.joblib')
 

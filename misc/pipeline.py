@@ -3,7 +3,7 @@ from transformers import pipeline
 from sklearn.metrics import classification_report, accuracy_score
 
 # Load cleaned notes
-df = pd.read_csv('notes_with_outcomes.csv')
+df = pd.read_csv(r'C:\Users\pinak\Downloads\Internship\main\results\notes_with_outcomes.csv')
 
 # Drop duplicates and nulls
 df = df[['note_text', 'trial_outcome']].drop_duplicates().dropna()
@@ -56,6 +56,7 @@ adjusted_accuracy = df['correct'].mean()
 report = classification_report(df['expected'], df['predicted'], digits=3)
 
 # Output
-print("\nClassification Report:")
+# distilbert-base-uncased-finetuned-sst-2-english
+print("\nClassification Report: Pipeline(DistilBERT)")
 print(report)
 print(f"True Accuracy: {true_accuracy:.4f} | Adjusted Accuracy: {adjusted_accuracy:.4f}")
