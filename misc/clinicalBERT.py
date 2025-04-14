@@ -77,14 +77,14 @@ for n in components_to_test:
     pca = PCA(n_components=n)
     X_pca = pca.fit_transform(embeddings)
 
-    skf = StratifiedKFold(n_splits=3, shuffle=True, random_state=42)
+    skf = StratifiedKFold(n_splits=5, shuffle=True, random_state=42)
     acc = []
 
     for train_idx, test_idx in skf.split(X_pca, y):
         X_train, X_test = X_pca[train_idx], X_pca[test_idx]
         y_train, y_test = y[train_idx], y[test_idx]
 
-        clf = LogisticRegression(max_iter=1000)
+        clf = LogisticRegression(max_iter=400)
         clf.fit(X_train, y_train)
         acc.append(clf.score(X_test, y_test))
 
@@ -151,7 +151,7 @@ def evaluate_model(model, name):
 # Unified evaluation
 evaluate_model(LogisticRegression(max_iter=100, C=0.5), "Logistic Regression")
 evaluate_model(SVC(kernel='linear', C=1.0), "SVM (Linear Kernel)")      # Smaller C better generalization
-evaluate_model(RandomForestClassifier(n_estimators=80, max_depth=10, random_state=42), "Random Forest")
+evaluate_model(RandomForestClassifier(n_estimators=100, max_depth=9, random_state=42), "Random Forest")
 
 # Placeholder for accuracy results
 n_estimators_range = range(10, 201, 10)
@@ -159,7 +159,7 @@ rf_n_estimators_results = []
 
 # Evaluate Random Forest with varying n_estimators, fixed max_depth=10
 for n in n_estimators_range:
-    print(f"\nRandom Forest with n_estimators={n}, max_depth=10")
+    print(f"\nRandom Forest with n_estimators={n}, max_depth=9")
     skf = StratifiedKFold(n_splits=5, shuffle=True, random_state=42)
     acc_list = []
 
@@ -167,7 +167,7 @@ for n in n_estimators_range:
         X_train, X_test = X_pca[train_idx], X_pca[test_idx]
         y_train, y_test = y[train_idx], y[test_idx]
 
-        model = RandomForestClassifier(n_estimators=n, max_depth=10, random_state=42)
+        model = RandomForestClassifier(n_estimators=n, max_depth=9, random_state=42)
         model.fit(X_train, y_train)
         acc_list.append(model.score(X_test, y_test))
 
@@ -183,7 +183,7 @@ plt.ylabel("Accuracy")
 plt.title("Random Forest (max_depth=10): n_estimators vs Accuracy")
 plt.grid(True)
 plt.show()
-evaluate_model(DecisionTreeClassifier(max_depth=8, random_state=42), "Decision Tree")
+evaluate_model(DecisionTreeClassifier(max_depth=9, random_state=42), "Decision Tree")
 
 
 # Store results for plotting
@@ -303,7 +303,7 @@ plt.grid(True)
 plt.show()
 
 # Train on the entire PCA-transformed dataset
-final_rf = RandomForestClassifier(n_estimators=80, max_depth=10, random_state=42)
+final_rf = RandomForestClassifier(n_estimators=100, max_depth=9, random_state=42)
 final_rf.fit(X_pca, y)
 
 # # Save the model

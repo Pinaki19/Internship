@@ -4,7 +4,8 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 from nltk.sentiment.vader import SentimentIntensityAnalyzer
 import nltk
-from sklearn.metrics import accuracy_score
+from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score
+
 # Initialize VADER
 nltk.download('vader_lexicon')
 sid = SentimentIntensityAnalyzer()
@@ -59,29 +60,25 @@ for neg in neg_cutoffs:
         adj_acc = df['is_correct'].mean()
         true_acc = accuracy_score(df['expected_sentiment'], df['predicted_sentiment'])
         
+        # Precision, Recall, and F1 Score
+        precision = precision_score(df['expected_sentiment'], df['predicted_sentiment'], average='weighted', labels=['Positive', 'Neutral', 'Negative'])
+        recall = recall_score(df['expected_sentiment'], df['predicted_sentiment'], average='weighted', labels=['Positive', 'Neutral', 'Negative'])
+        f1 = f1_score(df['expected_sentiment'], df['predicted_sentiment'], average='weighted', labels=['Positive', 'Neutral', 'Negative'])
+
         results.append({
             'neg_cutoff': neg,
             'pos_cutoff': pos,
             'true_accuracy': true_acc,
-            'adjusted_accuracy': adj_acc
+            'adjusted_accuracy': adj_acc,
+            'precision': precision,
+            'recall': recall,
+            'f1_score': f1
         })
 
 # ------------------ Save & Visualize ------------------
 results_df = pd.DataFrame(results)
 
-# # Heatmap
-# pivot = results_df.pivot(index='neg_cutoff', columns='pos_cutoff', values='accuracy')
-
-# plt.figure(figsize=(10, 8))
-# sns.heatmap(pivot, annot=True, fmt=".2%", cmap="coolwarm", cbar_kws={'label': 'Accuracy'})
-# plt.title('VADER Grid Search Accuracy for Sentiment Cutoffs')
-# plt.xlabel('Positive Cutoff')
-# plt.ylabel('Negative Cutoff')
-# plt.tight_layout()
-# plt.savefig("vader_sentiment_cutoff_heatmap.png")
-# plt.show()
-
-# Best configuration
+# Best configuration based on true_accuracy
 best = results_df.loc[results_df['true_accuracy'].idxmax()]
 print("\nBest Cutoff Configuration (VADER):")
 print(best)

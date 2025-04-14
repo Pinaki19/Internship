@@ -1,6 +1,7 @@
 import csv
 import random
 from datetime import datetime, timedelta
+import pandas as pd
 
 # Medical scenarios by outcome
 categories = {
@@ -394,7 +395,141 @@ categories = {
             "scenario": "Improved developmental milestones in preterm infant with support",
             "text": "Infant is now meeting age-appropriate developmental milestones following early intervention and supportive care. Continue developmental follow-up.",
             "labs": {"Developmental assessment": "Age-appropriate", "Growth parameters": "Within normal limits"}
-        }
+        },
+        # 16. Ophthalmology
+    {
+        "scenario": "Improved visual acuity after cataract surgery",
+        "text": "Patient reports significantly clearer vision following uncomplicated cataract extraction with intraocular lens implantation. Visual acuity improved from 20/200 to 20/30. Continue postoperative eye drops as prescribed.",
+        "labs": {"Visual Acuity": "20/30", "IOP": "Normal"}
+    },
+    {
+        "scenario": "Stabilization of glaucoma progression with medication",
+        "text": "Intraocular pressure remains within target range on topical prostaglandin analog. Visual field testing shows no further deterioration. Continue current eye drops and regular monitoring.",
+        "labs": {"IOP": "Controlled", "Visual Fields": "Stable"}
+    },
+    {
+        "scenario": "Resolution of diabetic macular edema with anti-VEGF injections",
+        "text": "Optical coherence tomography shows resolution of macular edema following a course of intravitreal anti-VEGF therapy. Visual acuity stabilized. Continue regular retinal evaluations.",
+        "labs": {"OCT": "No edema", "Visual Acuity": "Stable"}
+    },
+    {
+        "scenario": "Improved dry eye symptoms with punctal plugs",
+        "text": "Patient reports significant reduction in eye irritation, redness, and foreign body sensation following punctal plug insertion. Ocular surface staining improved. Continue artificial tears as needed.",
+        "labs": {"Tear Break-up Time": "Improved", "Ocular Surface Staining": "Reduced"}
+    },
+    {
+        "scenario": "Resolution of bacterial conjunctivitis with antibiotic drops",
+        "text": "No evidence of conjunctival injection or discharge after completing course of topical antibiotics. Visual acuity returned to baseline. Discontinue treatment.",
+        "labs": {"Slit Lamp Exam": "Clear", "Visual Acuity": "Baseline"}
+    },
+
+    # 17. Urology
+    {
+        "scenario": "Reduced nocturia in BPH with alpha-blocker",
+        "text": "Patient reports decreased nighttime urination from 4-5x/night to 1-2x/night since starting tamsulosin. Improved sleep quality. Continue current medication.",
+        "labs": {"IPSS Score": "Improved", "Post-void Residual": "Normal"}
+    },
+    {
+        "scenario": "Resolution of kidney stone with medical expulsive therapy",
+        "text": "Patient passed 4mm renal stone confirmed on strainer after course of tamsulosin and hydration. No residual stones on follow-up imaging. Discontinue MET.",
+        "labs": {"CT Scan": "No stones", "Urinalysis": "Normal"}
+    },
+    {
+        "scenario": "Improved erectile function with PDE5 inhibitor",
+        "text": "Patient reports satisfactory sexual function with use of sildenafil as needed. IIEF-5 score improved from 10 to 22. Continue current treatment.",
+        "labs": {"IIEF-5": "22", "Testosterone": "Normal"}
+    },
+    {
+        "scenario": "Reduced urinary incontinence with pelvic floor therapy",
+        "text": "Significant decrease in stress incontinence episodes following completion of 12-week pelvic floor muscle training program. Pad use reduced from 3/day to occasional. Continue exercises.",
+        "labs": {"Pad Test": "Improved", "Bladder Diary": "Fewer leaks"}
+    },
+    {
+        "scenario": "Resolution of recurrent UTIs with prophylactic antibiotics",
+        "text": "No urinary tract infections reported in past 6 months while on low-dose nitrofurantoin prophylaxis. Urinalyses remain clear. Continue current prevention strategy.",
+        "labs": {"Urinalysis": "Negative", "Culture": "No growth"}
+    },
+
+    # 18. ENT
+    {
+        "scenario": "Improved hearing with hearing aid fitting",
+        "text": "Patient reports significantly better communication ability and quality of life following proper hearing aid adjustment and acclimatization. Speech discrimination improved.",
+        "labs": {"Audiogram": "Improved with aids", "Speech Discrimination": "Better"}
+    },
+    {
+        "scenario": "Resolution of chronic sinusitis with FESS",
+        "text": "No sinus symptoms reported following functional endoscopic sinus surgery. Nasal endoscopy shows patent sinus ostia with healthy mucosa. Continue saline rinses.",
+        "labs": {"Nasal Endoscopy": "Normal", "CT Scan": "Clear"}
+    },
+    {
+        "scenario": "Reduced vertigo episodes in Ménière's disease with diet",
+        "text": "Frequency of vertigo attacks decreased from weekly to monthly with strict low-sodium diet and diuretic therapy. Hearing remains stable. Continue current management.",
+        "labs": {"Vertigo Frequency": "Decreased", "Audiogram": "Stable"}
+    },
+    {
+        "scenario": "Improved swallowing post-esophageal dilation",
+        "text": "Patient reports normal swallowing function following endoscopic dilation for benign esophageal stricture. Weight stabilized. Follow up as needed.",
+        "labs": {"Barium Swallow": "Normal transit", "Weight": "Stable"}
+    },
+    {
+        "scenario": "Resolution of vocal nodules with voice therapy",
+        "text": "Laryngoscopy shows complete resolution of vocal fold nodules following 3 months of voice therapy and vocal hygiene. Normal voice quality restored. Continue good vocal habits.",
+        "labs": {"Laryngoscopy": "Normal cords", "Voice Assessment": "Improved"}
+    },
+
+    # 19. Physical Medicine & Rehabilitation
+    {
+        "scenario": "Improved mobility post-total knee replacement with rehab",
+        "text": "Significant improvement in knee range of motion and walking endurance following intensive physical therapy after TKR. Pain well-controlled. Continue home exercise program.",
+        "labs": {"ROM": "0-120°", "6MWT": "Improved"}
+    },
+    {
+        "scenario": "Increased independence in ADLs after stroke rehab",
+        "text": "Patient now performs basic activities of daily living independently following 8 weeks of inpatient rehabilitation. FIM score improved from 60 to 105. Continue outpatient therapy.",
+        "labs": {"FIM Score": "105", "Barthel Index": "Improved"}
+    },
+    {
+        "scenario": "Pain reduction in CRPS with multimodal therapy",
+        "text": "Complex regional pain syndrome symptoms improved with combination of physical therapy, nerve blocks, and gabapentin. Pain scores decreased from 8/10 to 3/10. Continue current regimen.",
+        "labs": {"Pain Score": "3/10", "Temperature Differential": "Reduced"}
+    },
+    {
+        "scenario": "Improved balance in vestibular hypofunction with VRT",
+        "text": "Dizziness Handicap Inventory score decreased from 60 to 20 following 6 weeks of vestibular rehabilitation therapy. Romberg test normal. Continue exercises.",
+        "labs": {"DHI": "20", "Romberg": "Normal"}
+    },
+    {
+        "scenario": "Increased prosthetic use and function with training",
+        "text": "Transfemoral amputee now ambulating independently with prosthesis following intensive gait training. Wearing time increased to 10 hours daily. Continue prosthetic use.",
+        "labs": {"Prosthetic Use": "10 hrs/day", "Timed Up-and-Go": "Improved"}
+    },
+
+    # 20. Allergy & Immunology
+    {
+        "scenario": "Reduced allergic rhinitis symptoms with immunotherapy",
+        "text": "Significant decrease in seasonal allergy symptoms during second year of subcutaneous allergen immunotherapy. Reduced need for antihistamines. Continue maintenance injections.",
+        "labs": {"Symptom Score": "Improved", "Medication Use": "Decreased"}
+    },
+    {
+        "scenario": "Control of chronic urticaria with omalizumab",
+        "text": "No new hives or angioedema reported since starting monthly omalizumab injections. UAS7 score decreased from 28 to 2. Continue current treatment.",
+        "labs": {"UAS7": "2", "Quality of Life Score": "Improved"}
+    },
+    {
+        "scenario": "Improved asthma control with allergen avoidance",
+        "text": "Reduced asthma exacerbations and rescue inhaler use after implementing comprehensive dust mite avoidance measures. FEV1 improved. Continue environmental controls.",
+        "labs": {"FEV1": "Improved", "ACQ": "Better"}
+    },
+    {
+        "scenario": "Successful desensitization to antibiotic allergy",
+        "text": "Patient tolerated full course of previously allergenic antibiotic following graded challenge. No adverse reactions. Allergy label can be removed from chart.",
+        "labs": {"Drug Challenge": "Negative", "Symptoms": "None"}
+    },
+    {
+        "scenario": "Reduced frequency of hereditary angioedema attacks with prophylaxis",
+        "text": "No HAE attacks reported in past 6 months while on regular C1 esterase inhibitor prophylaxis. Quality of life improved. Continue current treatment.",
+        "labs": {"Attack Frequency": "0", "C4 Level": "Normalized"}
+    }
     ],
     "Stable": [
         # 1. Cardiology
@@ -1188,15 +1323,75 @@ def generate_notes(num_notes=500):
         note = (
             f"{scenario['text']} "
             f"Labs: {', '.join([f'{k}={v}' for k, v in scenario['labs'].items()])}. "
-            f"Next follow-up in {random.choice(['4 weeks', '3 months', '6 months'])}."
         )
         notes.append({"note_text": note, "trial_outcome": outcome})
     return notes
 
 # Generate CSV
-notes = generate_notes(1000)
-with open("clinical_notes.csv", "w", newline="", encoding="utf-8-sig") as csvfile:
+#notes = generate_notes(1000)
+import pandas as pd
+
+df = pd.read_csv(r'C:\Users\pinak\Downloads\Internship\clinical_notes_replaced.csv')
+
+# Drop duplicates to keep only unique notes
+unique_notes = df[['note_text', 'trial_outcome']]
+
+# Create the list of dictionaries
+notes = []
+for _, row in unique_notes.iterrows():
+    notes.append({
+        "note_text": row['note_text'],
+        "trial_outcome": row['trial_outcome']
+    })
+
+# Now notes is a list of dictionaries with unique note_text and trial_outcome
+
+
+
+# Find duplicate note_texts and replace them
+seen_notes = {}
+new_notes_list = []
+replaced_count = 0
+
+for note in notes:
+    note_text = note["note_text"]
+    outcome = note["trial_outcome"]
+    if note_text not in seen_notes:
+        seen_notes[note_text] = 1
+        new_notes_list.append(note)
+    else:
+        seen_notes[note_text] += 1
+
+        # Try to find a replacement note from the same outcome category
+        possible_replacements = []
+        for scenario in categories[outcome]:
+            replacement_text = (
+                f"{scenario['text']} "
+                f"Labs: {', '.join([f'{k}={v}' for k, v in scenario['labs'].items()])}. "
+            )
+            if replacement_text not in seen_notes:
+                possible_replacements.append({
+                    "note_text": replacement_text,
+                    "trial_outcome": outcome
+                })
+
+        if possible_replacements:
+            replacement_note = random.choice(possible_replacements)
+            new_notes_list.append(replacement_note)
+            seen_notes[replacement_note["note_text"]] = 1
+            replaced_count += 1
+        else:
+            # If no replacement found, keep the original duplicate
+            new_notes_list.append(note)
+
+print(f"Number of duplicate note_texts found and attempted to replace: {sum(count - 1 for count in seen_notes.values() if count > 1)}")
+print(f"Number of duplicate notes successfully replaced: {replaced_count}")
+
+# Write the new list of notes to a new CSV file
+with open("clinical_notes_replaced.csv", "w", newline="", encoding="utf-8-sig") as csvfile:
     fieldnames = ["note_text", "trial_outcome"]
     writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
     writer.writeheader()
-    writer.writerows(notes)
+    writer.writerows(new_notes_list)
+
+print("New CSV file 'clinical_notes_replaced.csv' created with potential duplicate replacements.")

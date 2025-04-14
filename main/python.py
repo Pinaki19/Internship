@@ -12,6 +12,13 @@ import numpy as np
 from sklearn.feature_extraction.text import TfidfVectorizer, ENGLISH_STOP_WORDS,CountVectorizer
 import seaborn as sns
 import os
+from nltk.tokenize import sent_tokenize
+from sklearn.metrics.pairwise import cosine_similarity
+import sqlite3
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+from scipy.stats import chi2_contingency, ttest_ind
 
 cur_dir=os.path.dirname(__file__)
 os.chdir(cur_dir)
@@ -146,10 +153,20 @@ def extract_numerical_changes(text):
     # Extract numerical changes using regex
     changes = re.findall(r'(\d+(?:\.\d+)?/\d+|\d+(?:\.\d+)?%|\d+(?:\.\d+)?)\s*(?:to|->)\s*(\d+(?:\.\d+)?/\d+|\d+(?:\.\d+)?%|\d+(?:\.\d+)?)', text)
     return changes
+import pandas as pd
+import numpy as np
+from sklearn.feature_extraction.text import TfidfVectorizer, ENGLISH_STOP_WORDS
+from sklearn.cluster import KMeans
+from sklearn.metrics.pairwise import cosine_similarity
+from nltk.tokenize import sent_tokenize
+
+def extract_numerical_changes(text):
+    # Dummy implementation — replace with your actual logic
+    return []
 
 def analyze_negative_trends():
     # Read and drop duplicate rows
-    df = pd.read_csv( r'.\results\sentiment_analysis_results.csv').drop_duplicates()
+    df = pd.read_csv(r'.\results\sentiment_analysis_results.csv').drop_duplicates()
 
     # Filter for negative sentiment
     negative_notes = df[df['sentiment'] == 'Negative'].dropna(subset=['note_text'])
@@ -163,7 +180,9 @@ def analyze_negative_trends():
 
     # Custom stop words
     custom_stop_words = list(set(ENGLISH_STOP_WORDS).union([
-        'patient', 'doctor', 'hospital', 'day', 'week', 'note'
+        'patient', 'doctor', 'hospital', 'day', 'week', 'note', 'labs', 'requires', 'follow',
+        'status', 'chest', 'surgical', 'despite', 'new', 'positive',
+         'mental', 'abdominal', 'low', 'exam','shows','review'
     ]))
 
     vectorizer = TfidfVectorizer(
@@ -188,10 +207,12 @@ def analyze_negative_trends():
 
     # Group notes by cluster
     trends = {}
+    cluster_keywords = []
     for i in range(n_clusters):
         cluster_center = kmeans.cluster_centers_[i]
         top_terms = get_top_terms(cluster_center)
-        cluster_name = f"Trend {i+1}: {', '.join(top_terms)}"
+        cluster_keywords.append(top_terms)
+        cluster_name = f"Trend Keywords {i+1}: {', '.join(top_terms)}"
 
         cluster_notes = negative_notes.iloc[np.where(clusters == i)[0]]['note_text'].drop_duplicates().tolist()
         trends[cluster_name] = cluster_notes
@@ -206,7 +227,7 @@ def analyze_negative_trends():
             print("-" * len(category))
             seen = set()
             for note in instances:
-                sentence = note.split('.')[0].strip()
+                sentence = sent_tokenize(note)[0]
                 if sentence not in seen:
                     seen.add(sentence)
                     changes = extract_numerical_changes(note)
@@ -215,7 +236,48 @@ def analyze_negative_trends():
                     else:
                         print(f"- {sentence}")
 
+    # --------- Adverse Effect Marking (based on TF-IDF similarity) ---------
 
+    
+
+    # Identify clusters considered adverse
+    adverse_notes = []
+    for i, terms in enumerate(cluster_keywords):
+        adverse_notes.extend(trends[f"Trend Keywords {i+1}: {', '.join(terms)}"])
+
+    adverse_notes = list(set(adverse_notes))
+
+    if adverse_notes:
+        # Vectorize all notes (adverse + all notes)
+        all_texts = df['note_text'].fillna("").tolist()
+        combined_texts = adverse_notes + all_texts
+
+        vectorizer_full = TfidfVectorizer(
+            max_features=1000,
+            stop_words=custom_stop_words,
+            ngram_range=(1, 2)
+        )
+        tfidf_all = vectorizer_full.fit_transform(combined_texts)
+
+        tfidf_adverse = tfidf_all[:len(adverse_notes)]
+        tfidf_main = tfidf_all[len(adverse_notes):]
+
+        # Compute similarity
+        similarity_matrix = cosine_similarity(tfidf_main, tfidf_adverse)
+
+        # Mark those with high similarity to any adverse cluster note
+        threshold = 0.3
+        adverse_flags = (similarity_matrix.max(axis=1) >= threshold)
+
+        # Update original DataFrame
+        df['adverse_effect'] = adverse_flags
+    else:
+        df['adverse_effect'] = False
+
+    # Save result
+    df.to_csv(r'C:\Users\pinak\Downloads\Internship\main\results\adverse_effects_results.csv', index=False)
+
+    
 #Question 5 Wordcloud
 def generate_wordcloud():
     df = pd.read_csv(r'.\CSV\clinician_notes.csv')
@@ -265,7 +327,7 @@ def Q3():
     report_top_words(3)
 
 def Q4():
-    analyze_sentiment()
+    #analyze_sentiment()
     analyze_negative_trends()
 
 def Q5():
@@ -273,4 +335,4 @@ def Q5():
     generate_wordcloud()
 
 if __name__ == "__main__":
-    Q5()
+    Q4()

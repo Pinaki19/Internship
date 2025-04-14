@@ -1,6 +1,6 @@
 import pandas as pd
 from transformers import pipeline
-from sklearn.metrics import classification_report, accuracy_score
+from sklearn.metrics import classification_report, accuracy_score, precision_score, recall_score, f1_score
 
 # Load cleaned notes
 df = pd.read_csv(r'C:\Users\pinak\Downloads\Internship\main\results\notes_with_outcomes.csv')
@@ -55,8 +55,13 @@ adjusted_accuracy = df['correct'].mean()
 # Classification Report
 report = classification_report(df['expected'], df['predicted'], digits=3)
 
+# Precision, Recall, and F1 Score (Additional Metrics)
+precision = precision_score(df['expected'], df['predicted'], average='weighted', labels=['Positive', 'Neutral', 'Negative'])
+recall = recall_score(df['expected'], df['predicted'], average='weighted', labels=['Positive', 'Neutral', 'Negative'])
+f1 = f1_score(df['expected'], df['predicted'], average='weighted', labels=['Positive', 'Neutral', 'Negative'])
+
 # Output
-# distilbert-base-uncased-finetuned-sst-2-english
 print("\nClassification Report: Pipeline(DistilBERT)")
 print(report)
 print(f"True Accuracy: {true_accuracy:.4f} | Adjusted Accuracy: {adjusted_accuracy:.4f}")
+print(f"Precision: {precision:.4f} | Recall: {recall:.4f} | F1 Score: {f1:.4f}")
