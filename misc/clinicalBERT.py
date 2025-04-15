@@ -14,6 +14,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from tqdm import tqdm
 from joblib import dump
+from sklearn.preprocessing import StandardScaler
 
 # Load and preprocess data
 df = pd.read_csv(r'C:\Users\pinak\Downloads\Internship\main\results\notes_with_outcomes.csv')
@@ -51,6 +52,9 @@ def get_embedding(text):
 
 print("Generating embeddings...")
 embeddings = np.array([get_embedding(text) for text in tqdm(df['note_text'].tolist())])
+scaler = StandardScaler()
+X = scaler.fit_transform(embeddings)
+
 dump(embeddings, r'models/clinical_bert_embeddings.joblib')
 # Find optimal PCA components
 print("\nFinding optimal PCA components...")
@@ -104,7 +108,6 @@ plt.grid(True)
 plt.show()
 
 print(f"\n✅ Best n_components = {best_n} with Accuracy = {best_acc:.4f}")
-best_n=10
 # Apply best PCA
 pca = PCA(n_components=best_n)
 X_pca = pca.fit_transform(embeddings)
@@ -115,10 +118,16 @@ def evaluate_model(model, name):
     skf = StratifiedKFold(n_splits=5, shuffle=True, random_state=42)
     all_true, all_pred = [], []
 
-    for train_idx, test_idx in skf.split(X_pca, y):
-        X_train, X_test = X_pca[train_idx], X_pca[test_idx]
+    for train_idx, test_idx in skf.split(embeddings, y):
+        X_train_raw, X_test_raw = embeddings[train_idx], embeddings[test_idx]
         y_train, y_test = y[train_idx], y[test_idx]
 
+        # Fit PCA on training data only
+        pca = PCA(n_components=best_n)
+        X_train = pca.fit_transform(X_train_raw)
+        X_test = pca.transform(X_test_raw)
+
+        # Fit model
         model.fit(X_train, y_train)
         preds = model.predict(X_test)
 
@@ -131,7 +140,6 @@ def evaluate_model(model, name):
     print("Classification Report:")
     print(classification_report(y_true_labels, y_pred_labels, digits=3))
 
-    # Adjusted accuracy
     def is_correct(pred, true):
         if true == 'Neutral':
             return pred in ['Neutral', 'Positive']
@@ -141,7 +149,6 @@ def evaluate_model(model, name):
     adjusted_acc = np.mean([is_correct(p, t) for p, t in zip(y_pred_labels, y_true_labels)])
     print(f"True Accuracy: {true_acc:.4f} || Adjusted Accuracy: {adjusted_acc:.4f}")
 
-    # Confusion Matrix
     cm = confusion_matrix(y_true_labels, y_pred_labels, labels=le.classes_)
     disp = ConfusionMatrixDisplay(confusion_matrix=cm, display_labels=le.classes_)
     disp.plot(cmap='Blues', values_format='d')
@@ -153,152 +160,152 @@ evaluate_model(LogisticRegression(max_iter=100, C=0.5), "Logistic Regression")
 evaluate_model(SVC(kernel='linear', C=1.0), "SVM (Linear Kernel)")      # Smaller C better generalization
 evaluate_model(RandomForestClassifier(n_estimators=100, max_depth=9, random_state=42), "Random Forest")
 
-# Placeholder for accuracy results
-n_estimators_range = range(10, 201, 10)
+# Result containers
 rf_n_estimators_results = []
-
-# Evaluate Random Forest with varying n_estimators, fixed max_depth=10
-for n in n_estimators_range:
-    print(f"\nRandom Forest with n_estimators={n}, max_depth=9")
-    skf = StratifiedKFold(n_splits=5, shuffle=True, random_state=42)
-    acc_list = []
-
-    for train_idx, test_idx in skf.split(X_pca, y):
-        X_train, X_test = X_pca[train_idx], X_pca[test_idx]
-        y_train, y_test = y[train_idx], y[test_idx]
-
-        model = RandomForestClassifier(n_estimators=n, max_depth=9, random_state=42)
-        model.fit(X_train, y_train)
-        acc_list.append(model.score(X_test, y_test))
-
-    avg_acc = np.mean(acc_list)
-    rf_n_estimators_results.append((n, avg_acc))
-    print(f"Avg Accuracy: {avg_acc:.4f}")
-
-# Plot: n_estimators vs Accuracy
-n_values, accuracies = zip(*rf_n_estimators_results)
-plt.plot(n_values, accuracies, marker='o')
-plt.xlabel("n_estimators")
-plt.ylabel("Accuracy")
-plt.title("Random Forest (max_depth=10): n_estimators vs Accuracy")
-plt.grid(True)
-plt.show()
-evaluate_model(DecisionTreeClassifier(max_depth=9, random_state=42), "Decision Tree")
-
-
-# Store results for plotting
 logreg_results = []
 svc_results = []
-rf_results = []
-dt_results = []
+rf_depth_results = []
+dt_depth_results = []
 
-# Evaluate Logistic Regression with varying iterations
-for iter in range(50, 501, 50):
-    print(f"\nLogistic Regression with max_iter={iter}")
-    skf = StratifiedKFold(n_splits=5, shuffle=True, random_state=42)
+# Function to perform PCA within each fold
+def pca_fold_transform(X_train, X_test, n_components=50):
+    X_train_scaled = scaler.fit_transform(X_train)
+    X_test_scaled = scaler.transform(X_test)
+    pca = PCA(n_components=n_components)
+    X_train_pca = pca.fit_transform(X_train_scaled)
+    X_test_pca = pca.transform(X_test_scaled)
+    return X_train_pca, X_test_pca
+
+# === 1. Random Forest (varying n_estimators) ===
+print("=== Random Forest: n_estimators vs Accuracy ===")
+for n in range(10, 201, 10):
     acc_list = []
-
-    for train_idx, test_idx in skf.split(X_pca, y):
-        X_train, X_test = X_pca[train_idx], X_pca[test_idx]
+    skf = StratifiedKFold(n_splits=5, shuffle=True, random_state=42)
+    for train_idx, test_idx in skf.split(X, y):
+        X_train, X_test = X[train_idx], X[test_idx]
         y_train, y_test = y[train_idx], y[test_idx]
 
-        model = LogisticRegression(max_iter=iter, C=0.5)
-        model.fit(X_train, y_train)
-        acc_list.append(model.score(X_test, y_test))
+        X_train_pca, X_test_pca = pca_fold_transform(X_train, X_test)
 
-    avg_acc = np.mean(acc_list)
-    logreg_results.append((iter, avg_acc))
-    print(f"Avg Accuracy: {avg_acc:.4f}")
+        model = RandomForestClassifier(n_estimators=n, max_depth=9, random_state=42)
+        model.fit(X_train_pca, y_train)
+        acc_list.append(model.score(X_test_pca, y_test))
+    
+    rf_n_estimators_results.append((n, np.mean(acc_list)))
+    print(f"n_estimators={n}, Accuracy={np.mean(acc_list):.4f}")
 
-# Plot Logistic Regression: max_iter vs accuracy
+# Plot
+n_values, accuracies = zip(*rf_n_estimators_results)
+plt.plot(n_values, accuracies, marker='o')
+plt.title("Random Forest: n_estimators vs Accuracy (no data leakage)")
+plt.xlabel("n_estimators")
+plt.ylabel("Accuracy")
+plt.grid(True)
+plt.show()
+
+# === 2. Logistic Regression (varying max_iter) ===
+print("=== Logistic Regression: max_iter vs Accuracy ===")
+for iter_ in range(50, 501, 50):
+    acc_list = []
+    skf = StratifiedKFold(n_splits=5, shuffle=True, random_state=42)
+    for train_idx, test_idx in skf.split(X, y):
+        X_train, X_test = X[train_idx], X[test_idx]
+        y_train, y_test = y[train_idx], y[test_idx]
+
+        X_train_pca, X_test_pca = pca_fold_transform(X_train, X_test)
+
+        model = LogisticRegression(max_iter=iter_, C=0.5)
+        model.fit(X_train_pca, y_train)
+        acc_list.append(model.score(X_test_pca, y_test))
+    
+    logreg_results.append((iter_, np.mean(acc_list)))
+    print(f"max_iter={iter_}, Accuracy={np.mean(acc_list):.4f}")
+
 iters, accs = zip(*logreg_results)
 plt.plot(iters, accs, marker='o')
+plt.title("Logistic Regression: max_iter vs Accuracy")
 plt.xlabel("max_iter")
 plt.ylabel("Accuracy")
-plt.title("Logistic Regression: max_iter vs Accuracy")
 plt.grid(True)
 plt.show()
 
-# Evaluate SVC with varying C
+# === 3. SVM (varying C) ===
+print("=== SVC: C vs Accuracy ===")
 c = 0.1
 while c <= 1.0:
-    print(f"\nSVM with C={c:.1f}")
-    skf = StratifiedKFold(n_splits=5, shuffle=True, random_state=42)
     acc_list = []
-
-    for train_idx, test_idx in skf.split(X_pca, y):
-        X_train, X_test = X_pca[train_idx], X_pca[test_idx]
+    skf = StratifiedKFold(n_splits=5, shuffle=True, random_state=42)
+    for train_idx, test_idx in skf.split(X, y):
+        X_train, X_test = X[train_idx], X[test_idx]
         y_train, y_test = y[train_idx], y[test_idx]
 
-        model = SVC(kernel='linear', C=c)
-        model.fit(X_train, y_train)
-        acc_list.append(model.score(X_test, y_test))
+        X_train_pca, X_test_pca = pca_fold_transform(X_train, X_test)
 
-    avg_acc = np.mean(acc_list)
-    svc_results.append((round(c, 1), avg_acc))
-    print(f"Avg Accuracy: {avg_acc:.4f}")
+        model = SVC(kernel='linear', C=round(c, 2))
+        model.fit(X_train_pca, y_train)
+        acc_list.append(model.score(X_test_pca, y_test))
+    
+    svc_results.append((round(c, 2), np.mean(acc_list)))
+    print(f"C={c:.2f}, Accuracy={np.mean(acc_list):.4f}")
     c += 0.1
 
-# Plot SVC: C vs accuracy
 cs, accs = zip(*svc_results)
 plt.plot(cs, accs, marker='o')
+plt.title("SVC (linear): C vs Accuracy")
 plt.xlabel("C")
 plt.ylabel("Accuracy")
-plt.title("SVM (linear kernel): C vs Accuracy")
 plt.grid(True)
 plt.show()
 
-# Evaluate Random Forest with varying max_depth
+# === 4. Random Forest (varying max_depth) ===
+print("=== Random Forest: max_depth vs Accuracy ===")
 for depth in range(5, 11):
-    print(f"\nRandom Forest with max_depth={depth}")
-    skf = StratifiedKFold(n_splits=5, shuffle=True, random_state=42)
     acc_list = []
-
-    for train_idx, test_idx in skf.split(X_pca, y):
-        X_train, X_test = X_pca[train_idx], X_pca[test_idx]
+    skf = StratifiedKFold(n_splits=5, shuffle=True, random_state=42)
+    for train_idx, test_idx in skf.split(X, y):
+        X_train, X_test = X[train_idx], X[test_idx]
         y_train, y_test = y[train_idx], y[test_idx]
+
+        X_train_pca, X_test_pca = pca_fold_transform(X_train, X_test)
 
         model = RandomForestClassifier(n_estimators=100, max_depth=depth, random_state=42)
-        model.fit(X_train, y_train)
-        acc_list.append(model.score(X_test, y_test))
+        model.fit(X_train_pca, y_train)
+        acc_list.append(model.score(X_test_pca, y_test))
+    
+    rf_depth_results.append((depth, np.mean(acc_list)))
+    print(f"max_depth={depth}, Accuracy={np.mean(acc_list):.4f}")
 
-    avg_acc = np.mean(acc_list)
-    rf_results.append((depth, avg_acc))
-    print(f"Avg Accuracy: {avg_acc:.4f}")
-
-# Plot Random Forest: max_depth vs accuracy
-depths, accs = zip(*rf_results)
+depths, accs = zip(*rf_depth_results)
 plt.plot(depths, accs, marker='o')
+plt.title("Random Forest: max_depth vs Accuracy")
 plt.xlabel("max_depth")
 plt.ylabel("Accuracy")
-plt.title("Random Forest: max_depth vs Accuracy")
 plt.grid(True)
 plt.show()
 
-# Evaluate Decision Tree with varying max_depth
+# === 5. Decision Tree (varying max_depth) ===
+print("=== Decision Tree: max_depth vs Accuracy ===")
 for depth in range(5, 11):
-    print(f"\nDecision Tree with max_depth={depth}")
-    skf = StratifiedKFold(n_splits=5, shuffle=True, random_state=42)
     acc_list = []
-
-    for train_idx, test_idx in skf.split(X_pca, y):
-        X_train, X_test = X_pca[train_idx], X_pca[test_idx]
+    skf = StratifiedKFold(n_splits=5, shuffle=True, random_state=42)
+    for train_idx, test_idx in skf.split(X, y):
+        X_train, X_test = X[train_idx], X[test_idx]
         y_train, y_test = y[train_idx], y[test_idx]
 
+        X_train_pca, X_test_pca = pca_fold_transform(X_train, X_test)
+
         model = DecisionTreeClassifier(max_depth=depth, random_state=42)
-        model.fit(X_train, y_train)
-        acc_list.append(model.score(X_test, y_test))
+        model.fit(X_train_pca, y_train)
+        acc_list.append(model.score(X_test_pca, y_test))
+    
+    dt_depth_results.append((depth, np.mean(acc_list)))
+    print(f"max_depth={depth}, Accuracy={np.mean(acc_list):.4f}")
 
-    avg_acc = np.mean(acc_list)
-    dt_results.append((depth, avg_acc))
-    print(f"Avg Accuracy: {avg_acc:.4f}")
-
-# Plot Decision Tree: max_depth vs accuracy
-depths, accs = zip(*dt_results)
+depths, accs = zip(*dt_depth_results)
 plt.plot(depths, accs, marker='o')
+plt.title("Decision Tree: max_depth vs Accuracy")
 plt.xlabel("max_depth")
 plt.ylabel("Accuracy")
-plt.title("Decision Tree: max_depth vs Accuracy")
 plt.grid(True)
 plt.show()
 

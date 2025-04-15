@@ -69,8 +69,8 @@ def analyze_notes_frequency_over_time():
     trials_df = pd.read_csv(r'.\CSV\trial_results.csv')
 
     # Convert dates to datetime
-    notes_df['note_date'] = pd.to_datetime(notes_df['note_date'], format='%d-%m-%Y')
-    trials_df['visit_date'] = pd.to_datetime(trials_df['visit_date'], format='%d-%m-%Y')
+    notes_df['note_date'] = pd.to_datetime(notes_df['note_date'])
+    trials_df['visit_date'] = pd.to_datetime(trials_df['visit_date'])
 
     # Get trial duration
     trial_start = trials_df['visit_date'].min()
@@ -125,20 +125,25 @@ def analyze_notes_frequency_over_time():
 
 
 #Question 3
-def report_top_words(n:int=3):
+def report_top_words(n: int = 3):
+    notes = pd.read_csv(r'C:\Users\pinak\Downloads\Internship\main\CSV\clinician_notes.csv')
+    trial = pd.read_csv(r'C:\Users\pinak\Downloads\Internship\main\CSV\trial_results.csv')
+    merged = pd.merge(
+        notes, trial,
+        left_on=['patient_id', 'note_date'],
+        right_on=['patient_id', 'visit_date'])
+    adverse_notes = merged[merged['adverse_event'] == True]
     def get_keywords(text):
         text = re.sub(r'[^\w\s]', '', text.lower())
         words = text.split()
         stop_words = set(stopwords.words('english'))
-        keywords = [word for word in words if word not in stop_words]
-        return keywords
-
+        stop_words.update(['labs', 'followup', 'current', 'continue','patient'])
+        return [word for word in words if word not in stop_words]
     all_keywords = []
-    for note in data['note_text']:
+    for note in adverse_notes['note_text']:
         all_keywords.extend(get_keywords(note))
-
     keyword_counts = Counter(all_keywords)
-    print(f"\nTop {n} most common keywords in clinical notes:")
+    print(f"\nTop {n} most common keywords in clinical notes with adverse events:")
     for word, count in keyword_counts.most_common(n):
         print(f"{word}: {count} occurrences")
 
@@ -301,7 +306,7 @@ def analyze_negative_trends():
         similarity_matrix = cosine_similarity(tfidf_main, tfidf_adverse)
 
         # Mark those with high similarity to any adverse cluster note
-        threshold = 0.8
+        threshold = 0.75
         adverse_flags = (similarity_matrix.max(axis=1) >= threshold)
 
         # Update original DataFrame

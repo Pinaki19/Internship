@@ -776,10 +776,10 @@ patient_id,visit_date,health_metric,adverse_event,trial_outcome
 773,2024-11-05,51.1,False,Stable
 773,2024-02-06,67.78,False,Improved
 773,2024-05-28,25.79,True,Worsened
-773,2024-05-25,72.76,True,Improved
+773,2024-05-25,72.76,False,Improved
 773,2025-08-01,70.32,False,Improved
 773,2024-06-07,9.16,True,Worsened
-773,2024-05-20,24.89,False,Worsened
+773,2024-05-20,24.89,True,Worsened
 773,2025-02-11,74.82,False,Improved
 773,2025-03-22,8.45,True,Worsened
 773,2024-03-09,58.34,False,Stable

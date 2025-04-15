@@ -168,27 +168,37 @@ def load_csv_to_db5():
     data_region.to_sql('regions_data',conn,if_exists='replace',index=False)
     data_trial.to_sql('trial_results',conn,if_exists='replace',index=False)
     conn.close()
-
+    
 def query_5():
     conn = sqlite3.connect('patients.db')
     cursor = conn.cursor()
     cursor.execute("""
-        SELECT
-            patients_data.age,
-            patients_data.gender,
-            COUNT(*) AS total_adverse_events
+        SELECT 
+            adverse_event,
+            ROUND(AVG(age),2) AS average_age
         FROM patients_data
-        JOIN trial_results ON patients_data.patient_id = trial_results.patient_id
-        WHERE trial_results.adverse_event = TRUE
-        GROUP BY patients_data.age, patients_data.gender
-        ORDER BY total_adverse_events DESC
-        ;
+        JOIN trial_results USING(patient_id)
+        GROUP BY adverse_event;
     """)
+    print("\nAverage age by adverse_event:")
     col = [desc[0] for desc in cursor.description]
     print(col)
-    answer = cursor.fetchall()
-    for data in answer:
-        print(data)
+    for row in cursor.fetchall():
+        print(row)
+    cursor.execute("""
+        SELECT 
+            gender,
+            adverse_event,
+            COUNT(*) AS count
+        FROM patients_data
+        JOIN trial_results USING(patient_id)
+        GROUP BY gender, adverse_event;
+    """)
+    print("\nCount of gender by adverse_event:")
+    col = [desc[0] for desc in cursor.description]
+    print(col)
+    for row in cursor.fetchall():
+        print(row)
     conn.close()
 
 
@@ -211,20 +221,15 @@ def fetch_merged_data(patient_info_csv, visit_data_csv, db_name='adverse_event_a
     FROM patient_info p
     JOIN visit_data v ON p.patient_id = v.patient_id
     """
-    
     # Fetch the merged data into a DataFrame
     merged_df = pd.read_sql_query(query, conn)
-
     # Ensure 'adverse_event' is boolean
     merged_df['adverse_event'] = merged_df['adverse_event'].astype(bool)
-
     return merged_df
 
-# Main function to analyze and plot the data
-def analyze_adverse_events(patient_info_csv, visit_data_csv):
-    # Fetch the merged data using the SQL function
-    merged_df = fetch_merged_data(patient_info_csv, visit_data_csv)
 
+def analyze_adverse_events(patient_info_csv, visit_data_csv):
+    merged_df = fetch_merged_data(patient_info_csv, visit_data_csv)
     # Plot Age vs Adverse Event (Boxplot)
     plt.figure(figsize=(8, 6))
     sns.boxplot(x='adverse_event', y='age', data=merged_df, palette='Blues')
@@ -232,7 +237,6 @@ def analyze_adverse_events(patient_info_csv, visit_data_csv):
     plt.xlabel('Adverse Event')
     plt.ylabel('Age')
     plt.show()
-
     # Plot Gender vs Adverse Event (Countplot)
     plt.figure(figsize=(8, 6))
     sns.countplot(x='gender', hue='adverse_event', data=merged_df, palette='Blues')
@@ -240,7 +244,7 @@ def analyze_adverse_events(patient_info_csv, visit_data_csv):
     plt.xlabel('Gender')
     plt.ylabel('Count of Adverse Events')
     plt.show()
-
+    
     # Chi-Square Test for Gender and Adverse Event
     contingency_table = pd.crosstab(merged_df['gender'], merged_df['adverse_event'])
     chi2, p, _, _ = chi2_contingency(contingency_table)
@@ -264,6 +268,6 @@ if __name__=="__main__":
     # query_3()
     # load_csv_to_db4()
     # query_4()
-    # load_csv_to_db5()
-    # query_5()
+    load_csv_to_db5()
+    query_5()
     #analyze_adverse_events(r'C:\Users\pinak\Downloads\Internship\main\CSV\patients_data.csv', r'C:\Users\pinak\Downloads\Internship\main\CSV\trial_results.csv')
