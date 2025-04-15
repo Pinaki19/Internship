@@ -15,7 +15,6 @@ def load_csv_to_db1():
     conn = sqlite3.connect('patients.db')
     df_patients.to_sql('patients_data', conn, if_exists='replace', index=False)
     df_regions.to_sql('regions_data', conn, if_exists='replace', index=False)
-
     conn.close()
 
 
@@ -23,12 +22,13 @@ def query_1():
     conn = sqlite3.connect('patients.db')
     cursor = conn.cursor()
     cursor.execute("""
-        select region_name,rd.region_id,total_patients
-        from patients_data 
-        join regions_data rd on 
+        SELECT region_name, rd.region_id,
+        COUNT(patient_id) AS total_patients
+        FROM patients_data 
+        JOIN regions_data rd ON 
         patients_data.region_id = rd.region_id 
-        group by region_name
-        order by region_name""")
+        GROUP BY region_name
+        ORDER BY region_name""")
     col = [des[0] for des in cursor.description]
     print(col)
     results = cursor.fetchall()
@@ -56,24 +56,19 @@ def query_2():
     cursor = conn.cursor()
     cursor.execute("""
     SELECT 
-    rd.region_name,rd.region_id,
-    rd.total_patients,
-
-    ROUND((rd.total_patients*1.0)/(
-    SELECT ((strftime('%Y',MAX(tr.visit_date)) - (strftime('%Y',MIN(tr.visit_date))))*12+                       (strftime('%m',MAX(tr.visit_date)) - (strftime('%m',MIN(tr.visit_date))))) as trial_duration
+    rd.region_name, rd.region_id,
+    COUNT(pd.patient_id) AS total_patients,
+    ROUND((COUNT(pd.patient_id)*1.0)/(
+    SELECT ((strftime('%Y',MAX(tr.visit_date)) - (strftime('%Y',MIN(tr.visit_date))))*12+                       (strftime('%m',MAX(tr.visit_date)) - (strftime('%m',MIN(tr.visit_date))))) AS trial_duration
     FROM trial_results tr)
-    *1.0,2) as enrollment_rate
-    from regions_data rd
+    *1.0,2) AS enrollment_rate
+    FROM regions_data rd
+    JOIN patients_data pd ON rd.region_id = pd.region_id
+    GROUP BY rd.region_name
     ORDER BY enrollment_rate DESC
     LIMIT 1
          ; 
         """)
-    '''
-   (
-       SELECT ((strftime('%Y',MAX(tr.visit_date)) - (strftime('%Y',MIN(tr.visit_date))))*12+                       (strftime('%m',MAX(tr.visit_date)) - (strftime('%m',MIN(tr.visit_date))))) as trial_duration
-       FROM trial_results tr) as trial_duration,
-   
-    '''
     cols = [desc[0] for desc in cursor.description]
     print(cols)
     rows = cursor.fetchall()
@@ -99,16 +94,21 @@ def query_3():
     conn = sqlite3.connect('patients.db')
     cursor = conn.cursor()
     cursor.execute("""
-        select 
-        regions_data.region_name , 
-        COUNT(CASE WHEN trial_results.trial_outcome = 'Improved' THEN 1 END) AS improved_patients,
-        (COUNT(CASE WHEN trial_results.trial_outcome = 'Improved' THEN 1 END) * 100.0) /
-        regions_data.total_patients
+    SELECT
+        rd.region_name,
+        rd.region_id,
+        COUNT(DISTINCT CASE WHEN tr.trial_outcome = 'Improved' THEN pd.patient_id END) AS improved_patients,
+        COUNT(DISTINCT pd.patient_id) as total_patients,
+        ROUND(
+            (COUNT(DISTINCT CASE WHEN tr.trial_outcome = 'Improved' THEN pd.patient_id END) * 100.0) /
+            NULLIF(COUNT(pd.patient_id), 0), 2)
         AS improved_percentage
-        from regions_data join 
-        patients_data on regions_data.region_id = patients_data.region_id
-        join trial_results on patients_data.patient_id = trial_results.patient_id
-        group by regions_data.region_name 
+        FROM regions_data rd
+        LEFT JOIN patients_data pd ON rd.region_id = pd.region_id
+        LEFT JOIN trial_results tr ON pd.patient_id = tr.patient_id
+        GROUP BY rd.region_id, rd.region_name
+        ORDER BY improved_percentage DESC
+        ;
     """)
     col = [des[0] for des in cursor.description]
     print(col)
@@ -138,14 +138,15 @@ def query_4():
     cursor.execute("""
         SELECT 
             regions_data.region_name,
+            regions_data.region_id,
             COUNT(*) AS total_adverse_events 
         FROM regions_data 
         JOIN patients_data ON regions_data.region_id = patients_data.region_id 
         JOIN trial_results ON patients_data.patient_id = trial_results.patient_id
-        WHERE trial_results.adverse_event = True
+        WHERE trial_results.adverse_event = TRUE
         GROUP BY regions_data.region_name 
         ORDER BY total_adverse_events DESC
-        limit 1 ;
+        LIMIT 1;
     """)
     col = [desc[0] for desc in cursor.description]
     print(col)
@@ -153,7 +154,6 @@ def query_4():
     for data in answer:
         print(data)
     conn.close()
-
 
 
 # Query No : 5 .
@@ -179,7 +179,7 @@ def query_5():
             COUNT(*) AS total_adverse_events
         FROM patients_data
         JOIN trial_results ON patients_data.patient_id = trial_results.patient_id
-        WHERE trial_results.adverse_event = True
+        WHERE trial_results.adverse_event = TRUE
         GROUP BY patients_data.age, patients_data.gender
         ORDER BY total_adverse_events DESC
         ;
@@ -266,4 +266,4 @@ if __name__=="__main__":
     # query_4()
     # load_csv_to_db5()
     # query_5()
-    analyze_adverse_events(r'C:\Users\pinak\Downloads\Internship\main\CSV\patients_data.csv', r'C:\Users\pinak\Downloads\Internship\main\CSV\trial_results.csv')
+    #analyze_adverse_events(r'C:\Users\pinak\Downloads\Internship\main\CSV\patients_data.csv', r'C:\Users\pinak\Downloads\Internship\main\CSV\trial_results.csv')

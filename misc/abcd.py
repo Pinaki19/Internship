@@ -8,6 +8,22 @@ from collections import Counter
 import random
 
 
+# Load the CSV
+df = pd.read_csv(r'C:\Users\pinak\Downloads\Internship\main\results\notes_with_outcomes.csv') 
+
+# Drop rows with missing note_text
+df = df.dropna(subset=['note_text'])
+
+# Group by trial_outcome and count note_text entries
+note_counts = df.groupby('trial_outcome')['note_text'].count().reset_index()
+
+# Rename for clarity
+note_counts.columns = ['trial_outcome', 'note_text_count']
+print()
+# Print result
+print(note_counts)
+
+
 def get_sentence_frequencies(csv_file):
     """
     Calculates the frequency of each sentence in the 'note_text' column of a CSV file.
@@ -32,14 +48,12 @@ def get_sentence_frequencies(csv_file):
     return sentence_frequencies
 
 # --- Example Usage ---
-csv_file_path = r'C:\Users\pinak\Downloads\Internship\main\CSV\clinician_notes.csv'  # Replace 'your_file.csv' with the actual path
+csv_file_path = r'C:\Users\pinak\Downloads\Internship\main\results\notes_with_outcomes.csv'  # Replace 'your_file.csv' with the actual path
 frequencies = get_sentence_frequencies(csv_file_path)
 
-# Print the most common sentences
-print("Most frequent sentences:")
 k,v=0,0
 for sentence, count in frequencies.items():  # Print top 10
     k+=1
     v+=count
     
-print(f'keys: {k} || Vals: {v}')
+print(f'\nUnique Notes: {k} || Total Notes: {v}')

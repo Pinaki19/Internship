@@ -19,6 +19,12 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
 from scipy.stats import chi2_contingency, ttest_ind
+import pandas as pd
+import numpy as np
+from sklearn.feature_extraction.text import TfidfVectorizer, ENGLISH_STOP_WORDS
+from sklearn.cluster import KMeans
+from sklearn.metrics.pairwise import cosine_similarity
+from nltk.tokenize import sent_tokenize
 
 cur_dir=os.path.dirname(__file__)
 os.chdir(cur_dir)
@@ -153,41 +159,72 @@ def extract_numerical_changes(text):
     # Extract numerical changes using regex
     changes = re.findall(r'(\d+(?:\.\d+)?/\d+|\d+(?:\.\d+)?%|\d+(?:\.\d+)?)\s*(?:to|->)\s*(\d+(?:\.\d+)?/\d+|\d+(?:\.\d+)?%|\d+(?:\.\d+)?)', text)
     return changes
-import pandas as pd
-import numpy as np
-from sklearn.feature_extraction.text import TfidfVectorizer, ENGLISH_STOP_WORDS
-from sklearn.cluster import KMeans
-from sklearn.metrics.pairwise import cosine_similarity
-from nltk.tokenize import sent_tokenize
+
 
 def extract_numerical_changes(text):
     # Dummy implementation — replace with your actual logic
     return []
 
+
+def test_thresholds_and_plot(df, adverse_notes, custom_stop_words):
+    all_texts = df['note_text'].fillna("").tolist()
+    combined_texts = adverse_notes + all_texts
+
+    vectorizer_full = TfidfVectorizer(
+        max_features=50,
+        stop_words=custom_stop_words,
+        ngram_range=(1, 2)
+    )
+    tfidf_all = vectorizer_full.fit_transform(combined_texts)
+    tfidf_adverse = tfidf_all[:len(adverse_notes)]
+    tfidf_main = tfidf_all[len(adverse_notes):]
+
+    similarity_matrix = cosine_similarity(tfidf_main, tfidf_adverse)
+    thresholds = [round(x, 2) for x in np.arange(0.4, 0.9, 0.05)]
+    results = []
+
+    for threshold in thresholds:
+        adverse_flags = (similarity_matrix.max(axis=1) >= threshold)
+        num_adverse = np.sum(adverse_flags)
+        results.append(num_adverse)
+    # Plot
+    plt.figure(figsize=(10, 6))
+    plt.plot(thresholds, results, marker='o', linestyle='-', color='darkred')
+    plt.title("Adverse Notes vs Similarity Threshold")
+    plt.xlabel("Similarity Threshold")
+    plt.ylabel("Number of Notes Marked as Adverse")
+    plt.grid(True)
+    plt.xticks(thresholds)
+    plt.tight_layout()
+    plt.show()
+
+
 def analyze_negative_trends():
     # Read and drop duplicate rows
     df = pd.read_csv(r'.\results\sentiment_analysis_results.csv').drop_duplicates()
-
     # Filter for negative sentiment
     negative_notes = df[df['sentiment'] == 'Negative'].dropna(subset=['note_text'])
-
     # Drop duplicate texts
     negative_notes = negative_notes.drop_duplicates(subset=['note_text'])
-
     if len(negative_notes) == 0:
         print("No negative trends found.")
         return
 
-    # Custom stop words
-    custom_stop_words = list(set(ENGLISH_STOP_WORDS).union([
-        'patient', 'doctor', 'hospital', 'day', 'week', 'note', 'labs', 'requires', 'follow',
-        'status', 'chest', 'surgical', 'despite', 'new', 'positive',
-         'mental', 'abdominal', 'low', 'exam','shows','review'
-    ]))
+    # Get default English stopwords
+    stop_words = set(stopwords.words('english'))
+    # Use CountVectorizer to find top 10 most common words
+    vectorizer = CountVectorizer(stop_words='english')
+    word_counts = vectorizer.fit_transform(df['note_text'].astype(str))
+    sum_words = word_counts.sum(axis=0)
+    word_freq = [(word, sum_words[0, idx]) for word, idx in vectorizer.vocabulary_.items()]
+    sorted_words = sorted(word_freq, key=lambda x: x[1], reverse=True)
+    top_10_words = [word for word, count in sorted_words[:10]]
 
+    stop_words.update(top_10_words)
+    stop_words=list(stop_words)
     vectorizer = TfidfVectorizer(
         max_features=50,
-        stop_words=custom_stop_words,
+        stop_words=stop_words,
         ngram_range=(1, 2)
     )
 
@@ -237,24 +274,22 @@ def analyze_negative_trends():
                         print(f"- {sentence}")
 
     # --------- Adverse Effect Marking (based on TF-IDF similarity) ---------
-
     
-
     # Identify clusters considered adverse
     adverse_notes = []
     for i, terms in enumerate(cluster_keywords):
         adverse_notes.extend(trends[f"Trend Keywords {i+1}: {', '.join(terms)}"])
 
     adverse_notes = list(set(adverse_notes))
-
+    #test_thresholds_and_plot(df, adverse_notes, stop_words)
     if adverse_notes:
         # Vectorize all notes (adverse + all notes)
         all_texts = df['note_text'].fillna("").tolist()
         combined_texts = adverse_notes + all_texts
 
         vectorizer_full = TfidfVectorizer(
-            max_features=1000,
-            stop_words=custom_stop_words,
+            max_features=50,
+            stop_words=stop_words,
             ngram_range=(1, 2)
         )
         tfidf_all = vectorizer_full.fit_transform(combined_texts)
@@ -266,7 +301,7 @@ def analyze_negative_trends():
         similarity_matrix = cosine_similarity(tfidf_main, tfidf_adverse)
 
         # Mark those with high similarity to any adverse cluster note
-        threshold = 0.3
+        threshold = 0.8
         adverse_flags = (similarity_matrix.max(axis=1) >= threshold)
 
         # Update original DataFrame
@@ -293,11 +328,10 @@ def generate_wordcloud():
     sum_words = word_counts.sum(axis=0)
     word_freq = [(word, sum_words[0, idx]) for word, idx in vectorizer.vocabulary_.items()]
     sorted_words = sorted(word_freq, key=lambda x: x[1], reverse=True)
-    top_20_words = [word for word, count in sorted_words[:20]]
+    top_10_words = [word for word, count in sorted_words[:10]]
 
     # Add the top 20 most frequent words as custom stopwords
-    stop_words.update(top_20_words)
-
+    stop_words.update(top_10_words)
     # Create and generate a word cloud image
     wordcloud = WordCloud(
         width=1600,
@@ -314,7 +348,6 @@ def generate_wordcloud():
     plt.axis('off')
     plt.title('Word Cloud of Clinical Notes')
 
-    # Save the image
     plt.savefig(r'.\results\clinical_notes_wordcloud.png', bbox_inches='tight', dpi=300)
     print("Word cloud saved as 'clinical_notes_wordcloud.png'")
 
@@ -331,7 +364,6 @@ def Q4():
     analyze_negative_trends()
 
 def Q5():
-    #TODO adverse_event vs Adverse effect from note_text
     generate_wordcloud()
 
 if __name__ == "__main__":
